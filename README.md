@@ -35,12 +35,14 @@ created_by = "AI Campus - Agentic AI Research Community"
 
 ```
 
+<img width="1789" height="1043" alt="AI HR Automation - LangGraph" src="https://github.com/user-attachments/assets/c8699540-8ac4-457a-852d-d166c93d9963" />
 
-![Alt text](https://public-files.gumroad.com/lo6sv6k9e3davf59vq0l3ku99r1a)
+
+### 📺 Watch the Video
+[![Watch the video](https://github.com/user-attachments/assets/ddeea993-8645-4ee2-a184-50bc629a5029)](https://www.youtube.com/watch?v=J6V18FWbaqY)
 
 
-[![Alt Text](https://img.youtube.com/vi/J6V18FWbaqY/0.jpg)](https://www.youtube.com/watch?v=J6V18FWbaqY)
-
+-----------------------------------------------------------
 
 ## 🚀 Quick Start
 
@@ -180,7 +182,8 @@ docker-compose down
 ### Step-by-Step Explanations
 DOCUMENTATION.md
 
-##############################################
+-----------------------------------------------------------
+
 
 ## Why uv package manager for Python3 projects
 Automatic Setup:
