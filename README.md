@@ -1,8 +1,10 @@
 # Agentic AI-Powered HR Automation with Python + LangGraph + FastAPI
 
-> Automated CV review and candidate evaluation system using LangChain, LangGraph, FastAPI, and Google APIs
-> Instant CV Intelligence for Modern Hiring Teams OR Learning Agentic AI for a real-world practical use-case
-> By AI Campus - Agentic AI Research Community
+> Automated CV review and candidate evaluation system using LangChain, LangGraph, LlamaIndex, FastAPI.
+> Instant CV Intelligence for Modern Hiring Teams
+> OR For Anyone
+> Interested In Learning Agentic AI for a real-world practical use-case
+> By AICampus - Agentic AI Research Community
 
 ## 🎯 Features
 
@@ -12,7 +14,7 @@
 - ⭐ Candidate scoring (1-100) with detailed reasoning
 - 📊 Automatic Google Sheets logging
 - 🚀 High-performance FastAPI with async support
-- 📚 Auto-generated API documentation
+- ⭐ Data Analytics with web-based HR Dashaboard support for monitoring and visualization
 
 ## 💰 Cost
 
@@ -35,6 +37,9 @@ created_by = "AI Campus - Agentic AI Research Community"
 
 
 ![Alt text](https://public-files.gumroad.com/lo6sv6k9e3davf59vq0l3ku99r1a)
+
+
+[![Alt Text](https://img.youtube.com/vi/J6V18FWbaqY/0.jpg)](https://www.youtube.com/watch?v=J6V18FWbaqY)
 
 
 ## 🚀 Quick Start
@@ -231,7 +236,7 @@ Optimize Ollama Context: HR tasks involving long resumes require context. Limit 
 LangGraph Integration: Use the Ollama Functions or Tool Calling wrappers in LangGraph. Qwen3-7B is specifically optimized for these "agentic" triggers in the 2026 library updates. 
 Recommendation: Start with ollama run deepseek-r1:7b. If the "thinking" steps make your agent loops too slow for local testing, switch to ollama run qwen3:7b for faster, direct instruction execution.
 
-#################################
+-----------------------------------------------------------
 
 
 # PROMPT GUIDE
@@ -262,9 +267,12 @@ Structured Schema: LLLM models in 2026 are highly trained on JSON outputs. Using
 Confidence Scoring: Including a "Missing Skills" section forces the model to look for negatives, which counteracts the natural tendency of LLMs to be "agreeable" and over-rate candidates. 
 
 
-# ============================================================================
-# AI-Powered HR Automation with LangGraph
-# Complete CV Review to Candidate Evaluation System
+-----------------------------------------------------------
 
-## Developed By AICampus - Gateway for future AI research & learning
-# ============================================================================
+# AI-Powered HR Automation with LangGraph
+## Complete CV Review to Candidate Evaluation System
+
+### Developed By AICampus - Gateway for future AI research & learning
+
+-----------------------------------------------------------
+
