@@ -1,5 +1,30 @@
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
+![LangChain](https://img.shields.io/badge/LangChain-Framework-blue?logo=python)
+![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20AI-blueviolet)
+![LlamaIndex](https://img.shields.io/badge/LlamaIndex-RAG%20Framework-6C5CE7)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-black?logo=openai)
+![Anthropic](https://img.shields.io/badge/Anthropic-Claude-5A67D8)
+![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google)
+![Ollama](https://img.shields.io/badge/Ollama-Qwen-000000)
+![Next.js](https://img.shields.io/badge/Next.js-black?logo=nextdotjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-TS-3178C6?logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-38B2AC?logo=tailwindcss)
+![Google APIs](https://img.shields.io/badge/Google%20APIs-Cloud-4285F4?logo=googlecloud)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb)
+
+</div>
+
+**AI-powered recruitment automation with LangGraph orchestration, LLM reasoning, and enterprise workflow automation.**
+
+
 # Agentic AI-Powered HR Automation<br>Instant CV Intelligence for Modern Hiring Teams<br>Python + LangGraph + FastAPI
 
+> 🚀 Enterprise-grade Agentic AI platform for HR automation, candidate intelligence, and recruitment workflows.
+
+<br>
 For Anyone:<br>
 Interested In Learning Agentic AI for a real-world practical use-case<br><br>
 Automated CV review and candidate evaluation system using LangChain, LangGraph, LlamaIndex, FastAPI.<br>
@@ -25,14 +50,16 @@ By AICampus - Agentic AI Research Community
 
 ### 🛠️ Tech Stack
 
+### 🛠️ Tech Stack
+
 | Category | Tools |
 | :--- | :--- |
-| **Agentic AI** | ![LangChain](https://img.shields.io) ![LangGraph](https://img.shields.io) ![LlamaIndex](https://img.shields.io) |
-| **Backend** | ![FastAPI](https://img.shields.io) ![Google APIs](https://img.shields.io) ![MongoDB](https://img.shields.io) |
-| **Frontend** | ![Next.js](https://img.shields.io) ![TypeScript](https://img.shields.io) ![TailwindCSS](https://img.shields.io) |
+| **Agentic AI** | ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python) ![LangChain](https://img.shields.io/badge/LangChain-Framework-blue?logo=python) ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20AI-blueviolet) ![LlamaIndex](https://img.shields.io/badge/LlamaIndex-RAG%20Framework-6C5CE7) |
+| **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi) ![Google APIs](https://img.shields.io/badge/Google%20APIs-Cloud-4285F4?logo=googlecloud) ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb) |
+| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js-black?logo=nextdotjs) ![TypeScript](https://img.shields.io/badge/TypeScript-TS-3178C6?logo=typescript) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-38B2AC?logo=tailwindcss) |
 
 ### 🧠 LLM Providers
-![OpenAI GPT-4o](https://img.shields.io) ![Anthropic Claude](https://img.shields.io) ![Google Gemini](https://img.shields.io) ![Ollama Qwen](https://img.shields.io)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-black?logo=openai) ![Anthropic](https://img.shields.io/badge/Anthropic-Claude-5A67D8) ![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google) ![Ollama](https://img.shields.io/badge/Ollama-Qwen-000000)
 
 > Created by **AICampus** - Agentic AI Research Community
 
@@ -63,8 +90,8 @@ Get the project complete source-code as zip file:
 [Backend AI Agent Workflow + Frontend HR Dashboard](https://aicampusmagazines.gumroad.com/l/gscdiq)
 
 ### 1. Installation
+Download the complete project code [here](https://aicampusmagazines.gumroad.com/l/gscdiq) 
 ```bash
-# Download the complete project code [here](https://aicampusmagazines.gumroad.com/l/gscdiq) 
 cd ai-hr-automation
 
 # Install dependencies - Using uv dependency manager (Speed: 10–100x faster than pip), Solves nested dependencies issues for complex architectures like LangGraph
