@@ -70,6 +70,13 @@ By AICampus - Agentic AI Research Community
 - Timestamped records with direct CV links
 - Multi-LLM Support: OpenAI GPT, Anthropic Claude, Google Gemini, Opensource Qwen3 via Ollama
 
+
+### Automation Workflow
+
+<img width="1536" height="1024" alt="AI HR Automation Workflow" src="https://github.com/user-attachments/assets/852bae0a-28e2-4249-8493-009693b4d2a1" />
+
+
+
 <br>
 <img width="1789" height="1043" alt="AI HR Automation - LangGraph" src="https://github.com/user-attachments/assets/c8699540-8ac4-457a-852d-d166c93d9963" />
 <br>
