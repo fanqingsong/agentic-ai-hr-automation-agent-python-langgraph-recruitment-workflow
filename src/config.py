@@ -18,12 +18,19 @@ class Config:
     # LLM CONFIGURATION
     # ========================================================================
 
-    # LLM Provider (openai, anthropic, gemini, ollama)
+    # LLM Provider (openai, azure, anthropic, gemini, ollama)
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai").lower()
 
     # OpenAI Configuration
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+    # Azure OpenAI Configuration
+    AZURE_OPENAI_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY", "")
+    AZURE_OPENAI_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+    AZURE_OPENAI_DEPLOYMENT: str = os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
+    AZURE_OPENAI_MODEL: str = os.getenv("AZURE_OPENAI_MODEL", "gpt-4o-mini")
+    AZURE_OPENAI_API_VERSION: str = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
 
     # Anthropic Configuration
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
@@ -51,15 +58,16 @@ class Config:
     # ========================================================================
     # Cleaner(Modern) — pathlib(Recommended)
     BASE_DIR = Path(__file__).resolve().parent.parent
-    GOOGLE_CREDENTIALS_PATH = os.path.join(
-        BASE_DIR,
-        os.getenv("GOOGLE_CREDENTIALS_JSON_FILE", "google-service-account-credentials.json")
-    )
+    # ========================================================================
+    # MINIO CONFIGURATION (对象存储)
+    # ========================================================================
 
-    GOOGLE_SHEET_ID: str = os.getenv("GOOGLE_SHEET_ID", "")
-    SHEET_NAME: str = "Sheet1"
-
-    GOOGLE_CLOUD_STORAGE_BUCKET: str = os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET", "")
+    # MinIO Configuration
+    MINIO_ENDPOINT: str = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+    MINIO_ACCESS_KEY: str = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+    MINIO_SECRET_KEY: str = os.getenv("MINIO_SECRET_KEY", "minioadmin123")
+    MINIO_BUCKET: str = os.getenv("MINIO_BUCKET", "cv-uploads")
+    MINIO_SECURE: bool = os.getenv("MINIO_SECURE", "false").lower() == "true"
 
 
     # ========================================================================
@@ -88,6 +96,8 @@ class Config:
 
         if provider == "openai":
             return cls.OPENAI_API_KEY
+        elif provider == "azure":
+            return cls.AZURE_OPENAI_API_KEY
         elif provider == "anthropic":
             return cls.ANTHROPIC_API_KEY
         elif provider == "gemini":
@@ -109,6 +119,8 @@ class Config:
 
         if provider == "openai":
             return cls.OPENAI_MODEL
+        elif provider == "azure":
+            return cls.AZURE_OPENAI_MODEL
         elif provider == "anthropic":
             return cls.ANTHROPIC_MODEL
         elif provider == "gemini":
@@ -121,12 +133,15 @@ class Config:
     @classmethod
     def validate(cls) -> bool:
         """Validate required configuration"""
-        # Only validate Google config if credentials file exists
         required_fields = []
 
         # Add provider-specific validation
         if cls.LLM_PROVIDER == "openai":
             required_fields.append(("OPENAI_API_KEY", cls.OPENAI_API_KEY))
+        elif cls.LLM_PROVIDER == "azure":
+            required_fields.append(("AZURE_OPENAI_API_KEY", cls.AZURE_OPENAI_API_KEY))
+            required_fields.append(("AZURE_OPENAI_ENDPOINT", cls.AZURE_OPENAI_ENDPOINT))
+            required_fields.append(("AZURE_OPENAI_DEPLOYMENT", cls.AZURE_OPENAI_DEPLOYMENT))
         elif cls.LLM_PROVIDER == "anthropic":
             required_fields.append(("ANTHROPIC_API_KEY", cls.ANTHROPIC_API_KEY))
         elif cls.LLM_PROVIDER == "gemini":

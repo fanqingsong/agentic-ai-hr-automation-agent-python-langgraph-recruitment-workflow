@@ -25,9 +25,8 @@ from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langgraph.graph import StateGraph, END
 from langgraph.types import RetryPolicy
 
-from src.google_cloud import GCSUploader
+from src.minio_storage import get_storage
 from src.llm_provider import create_summary_llm, create_evaluation_llm, create_job_skills_llm
-from src.notifications import *
 from src.data_extraction import extract_cv_data
 from src.fastapi_api import HRJobPost, JobApplication
 from src.skills_match import map_job_to_candidate_skills
@@ -38,37 +37,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def check_google_services_available() -> bool:
-    """
-    Check if Google Services are properly configured
-
-    Returns:
-        True if Google Services are available, False otherwise
-    """
-    try:
-        # Check if credentials file exists
-        if not os.path.exists(Config.GOOGLE_CREDENTIALS_PATH):
-            logger.warning(f"⚠️ Google credentials not found at: {Config.GOOGLE_CREDENTIALS_PATH}")
-            return False
-
-        if not Config.GOOGLE_SHEET_ID:
-            logger.warning("⚠️ GOOGLE_SHEET_ID not configured")
-            return False
-
-        # Try to initialize Google Services
-        try:
-            GoogleServices()
-            logger.info("✅ Google Services are available and configured")
-            return True
-        except Exception as e:
-            logger.warning(f"⚠️ Google Services initialization failed: {str(e)}")
-            return False
-
-    except Exception as e:
-        logger.warning(f"⚠️ Error checking Google Services: {str(e)}")
-        return False
 
 
 # ============================================================================
@@ -96,8 +64,6 @@ def create_hr_workflow():
     retry_once = RetryPolicy(max_attempts=2)
     graph.add_node("evaluate", evaluate_candidate_node, retry_policy=retry_once)
     graph.add_node("skills_match_node", skills_match_node)
-
-    graph.add_node("save_results", save_to_sheets_node)
 
     graph.add_node("score_decision", score_decision_node)
     graph.add_node("fan_out_notifications", fan_out_notifications)

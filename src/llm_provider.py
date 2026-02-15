@@ -3,13 +3,14 @@ Generic LLM Provider - Supports Multiple LLMs
 
 Supports:
 - OpenAI (GPT-4, GPT-3.5, GPT-4o-mini)
+- Azure OpenAI (GPT-4, GPT-3.5, GPT-4o-mini on Azure)
 - Anthropic Claude (Claude 3 Opus, Sonnet, Haiku)
 - Google Gemini (Gemini 2.5 Pro, 1.5 Pro, 1.5 Flash)
 - Ollama (Local models: qwen3, llama3, mistral, , etc.)
 """
 
 from langchain_core.language_models import BaseChatModel
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.chat_models import ChatOllama
@@ -25,6 +26,7 @@ from enum import Enum
 class LLMProvider(str, Enum):
     """Supported LLM providers"""
     OPENAI = "openai"
+    AZURE_OPENAI = "azure"
     ANTHROPIC = "anthropic"
     GEMINI = "gemini"
     OLLAMA = "ollama"
@@ -52,7 +54,7 @@ class LLMFactory:
         Create an LLM instance based on provider
 
         Args:
-            provider: LLM provider (openai, anthropic, gemini, ollama, mock)
+            provider: LLM provider (openai, azure, anthropic, gemini, ollama)
             model: Model name
             temperature: Temperature setting (0-1)
             max_tokens: Maximum tokens in response
@@ -72,6 +74,9 @@ class LLMFactory:
         # Create LLM based on provider
         if provider == LLMProvider.OPENAI:
             return LLMFactory._create_openai(model, temperature, max_tokens, api_key, **kwargs)
+
+        elif provider == LLMProvider.AZURE_OPENAI:
+            return LLMFactory._create_azure_openai(model, temperature, max_tokens, api_key, **kwargs)
 
         elif provider == LLMProvider.ANTHROPIC:
             return LLMFactory._create_anthropic(model, temperature, max_tokens, api_key, **kwargs)
@@ -110,6 +115,47 @@ class LLMFactory:
         llm_kwargs.update(kwargs)
 
         return ChatOpenAI(**llm_kwargs)
+
+    @staticmethod
+    def _create_azure_openai(
+        model: str = None,
+        temperature: float = 0.3,
+        max_tokens: int = 1000,
+        api_key: str = None,
+        **kwargs
+    ) -> AzureChatOpenAI:
+        """Create Azure OpenAI LLM instance"""
+        # Azure OpenAI requires specific configuration
+        model = model or os.getenv("AZURE_OPENAI_MODEL", "gpt-4o-mini")
+        api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY")
+
+        # Required Azure parameters
+        azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", model)
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+
+        if not azure_endpoint:
+            raise ValueError(
+                "AZURE_OPENAI_ENDPOINT is required for Azure OpenAI. "
+                "Example: https://your-resource.openai.azure.com/"
+            )
+
+        llm_kwargs = {
+            "model": model,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "azure_endpoint": azure_endpoint,
+            "azure_deployment": azure_deployment,
+            "api_version": api_version,
+        }
+
+        if api_key:
+            llm_kwargs["api_key"] = SecretStr(api_key)
+
+        # Add any additional kwargs
+        llm_kwargs.update(kwargs)
+
+        return AzureChatOpenAI(**llm_kwargs)
 
     @staticmethod
     def _create_anthropic(
@@ -291,7 +337,21 @@ llm = create_summary_llm()
 llm = create_summary_llm(provider="openai", model="gpt-4")
 
 
-Example 2: Using Anthropic Claude
+Example 2: Using Azure OpenAI
+------------------------------
+llm = create_summary_llm(
+    provider="azure",
+    model="gpt-4o-mini"
+)
+
+# Environment variables required:
+# AZURE_OPENAI_API_KEY=your-azure-api-key
+# AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+# AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini-deployment
+# AZURE_OPENAI_API_VERSION=2024-02-15-preview
+
+
+Example 3: Using Anthropic Claude
 ----------------------------------
 llm = create_summary_llm(
     provider="anthropic",
@@ -300,7 +360,7 @@ llm = create_summary_llm(
 )
 
 
-Example 3: Using Google Gemini
+Example 4: Using Google Gemini
 -------------------------------
 llm = create_summary_llm(
     provider="gemini",
@@ -309,7 +369,7 @@ llm = create_summary_llm(
 )
 
 
-Example 4: Using Ollama (Local, Free)
+Example 5: Using Ollama (Local, Free)
 --------------------------------------
 llm = create_summary_llm(
     provider="ollama",
@@ -319,10 +379,12 @@ llm = create_summary_llm(
 
 Example 6: Using Environment Variables
 ---------------------------------------
-# Set in .env:
-# LLM_PROVIDER=gemini
-# GEMINI_API_KEY=your-key
-# GEMINI_MODEL=gemini-2.5-pro
+# For Azure OpenAI, set in .env:
+# LLM_PROVIDER=azure
+# AZURE_OPENAI_API_KEY=your-key
+# AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+# AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+# AZURE_OPENAI_MODEL=gpt-4o-mini
 
 llm = create_summary_llm()  # Automatically uses env vars
 
@@ -330,10 +392,9 @@ llm = create_summary_llm()  # Automatically uses env vars
 Example 7: Custom Configuration
 --------------------------------
 llm = LLMFactory.create_llm(
-    provider="gemini",
-    model="gemini-1.5-pro",
+    provider="azure",
+    model="gpt-4",
     temperature=0.7,
-    max_tokens=2000,
-    top_p=0.9
+    max_tokens=2000
 )
 """

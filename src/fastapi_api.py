@@ -290,8 +290,18 @@ async def root():
         "version": "1.0.0",
         "documentation": "/docs",
         "health": "/health",
+        "dashboard": "/api/dashboard/stats",
         "description": "Automated CV review and candidate evaluation using LangGraph"
     }
+
+
+# ============================================================================
+# REGISTER DASHBOARD API ROUTES
+# ============================================================================
+
+# Import and register dashboard routes
+from src.dashboard_api import register_dashboard_routes
+register_dashboard_routes(app, db)
 
 
 @app.get("/health", response_model=HealthResponse)
