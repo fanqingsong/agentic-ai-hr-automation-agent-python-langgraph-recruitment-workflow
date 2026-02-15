@@ -71,6 +71,30 @@ class Config:
 
 
     # ========================================================================
+    # POSTGRESQL CONFIGURATION (用户认证数据库)
+    # ========================================================================
+
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost:5432")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "hr_user")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "hr_pass")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "hr_users")
+
+    @property
+    def DATABASE_URL(self) -> str:
+        """Generate SQLAlchemy database URL"""
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+
+
+    # ========================================================================
+    # SECURITY CONFIGURATION (JWT 认证)
+    # ========================================================================
+
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
+
+    # ========================================================================
     # FASTAPI CONFIGURATION
     # ========================================================================
 

@@ -40,4 +40,12 @@ dependencies = [
     "xlsxwriter>=3.0.0",  # Excel export functionality
     # MinIO Storage dependencies (v1.2.0)
     "minio>=7.0.0",  # MinIO object storage client
+    # Authentication and Authorization dependencies (v1.3.0)
+    "python-jose[cryptography]>=3.3.0",  # JWT token creation and validation
+    "passlib[bcrypt]>=1.7.4",  # Password hashing
+    "python-multipart>=0.0.21",  # Form data parsing
+    "sqlalchemy>=2.0.0",  # SQL toolkit
+    "psycopg2-binary>=2.9.9",  # PostgreSQL adapter
+    "alembic>=1.13.0",  # Database migration
+    "email-validator>=2.3.0",  # Email validation
 ]

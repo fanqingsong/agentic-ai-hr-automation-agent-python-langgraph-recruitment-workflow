@@ -304,6 +304,15 @@ from src.dashboard_api import register_dashboard_routes
 register_dashboard_routes(app, db)
 
 
+# ============================================================================
+# REGISTER AUTHENTICATION ROUTES
+# ============================================================================
+
+# Import and register authentication routes
+from src.auth_routes import router as auth_router
+app.include_router(auth_router)
+
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """

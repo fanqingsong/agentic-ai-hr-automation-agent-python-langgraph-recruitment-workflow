@@ -38,6 +38,27 @@ services:
       - hr-network
     restart: unless-stopped
 
+  # PostgreSQL 数据库 (用户认证)
+  postgres:
+    image: postgres:16-alpine
+    container_name: hr-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-hr_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hr_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-hr_users}
+    networks:
+      - hr-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hr_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # HR Automation API
   hr-automation:
     build: .
@@ -61,6 +82,17 @@ services:
       # MongoDB
       - MONGODB_URL=mongodb://mongodb:27017
 
+      # PostgreSQL (用户认证)
+      - POSTGRES_SERVER=${POSTGRES_SERVER:-postgres:5432}
+      - POSTGRES_USER=${POSTGRES_USER:-hr_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hr_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-hr_users}
+
+      # JWT 密钥 (生产环境请使用强随机密钥)
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+
       # FastAPI
       - HOST=0.0.0.0
       - PORT=8000
@@ -72,6 +104,7 @@ services:
     depends_on:
       - minio
       - mongodb
+      - postgres
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -85,6 +118,8 @@ volumes:
   minio_data:
     driver: local
   mongodb_data:
+    driver: local
+  postgres_data:
     driver: local
 
 networks:
