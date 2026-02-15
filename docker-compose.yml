@@ -114,6 +114,22 @@ services:
     networks:
       - hr-network
 
+  # Frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hr-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - hr-automation
+    restart: unless-stopped
+    networks:
+      - hr-network
+
 volumes:
   minio_data:
     driver: local
