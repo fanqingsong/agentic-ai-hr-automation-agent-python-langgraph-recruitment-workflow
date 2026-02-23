@@ -1,6 +1,6 @@
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)
 ![LangChain](https://img.shields.io/badge/LangChain-Framework-blue?logo=python)
 ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20AI-blueviolet)
 ![LlamaIndex](https://img.shields.io/badge/LlamaIndex-RAG%20Framework-6C5CE7)
@@ -9,11 +9,13 @@
 ![Anthropic](https://img.shields.io/badge/Anthropic-Claude-5A67D8)
 ![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google)
 ![Ollama](https://img.shields.io/badge/Ollama-Qwen-000000)
-![Next.js](https://img.shields.io/badge/Next.js-black?logo=nextdotjs)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
+![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite)
 ![TypeScript](https://img.shields.io/badge/TypeScript-TS-3178C6?logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-38B2AC?logo=tailwindcss)
-![Google APIs](https://img.shields.io/badge/Google%20APIs-Cloud-4285F4?logo=googlecloud)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Auth-336791?logo=postgresql)
+![MinIO](https://img.shields.io/badge/MinIO-Storage-000000?logo=minio)
 
 </div>
 
@@ -36,7 +38,7 @@ By AICampus - Agentic AI Research Community
 - 🤖 AI-powered data extraction (personal info, experience, skills, qualifications etc.)
 - 📝 200-word professional summaries
 - ⭐ Candidate scoring (1-100) with detailed reasoning
-- 📊 Automatic Google Sheets logging
+- 📊 Optional Google Sheets logging (configurable)
 - 🚀 High-performance FastAPI with async support
 - ⭐ Data Analytics with web-based HR Dashaboard support for management and visualization
 - ⭐ Real-time notifications for HR teams
@@ -54,26 +56,29 @@ By AICampus - Agentic AI Research Community
 
 | Category | Tools |
 | :--- | :--- |
-| **Agentic AI** | ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python) ![LangChain](https://img.shields.io/badge/LangChain-Framework-blue?logo=python) ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20AI-blueviolet) ![LlamaIndex](https://img.shields.io/badge/LlamaIndex-RAG%20Framework-6C5CE7) |
-| **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi) ![Google APIs](https://img.shields.io/badge/Google%20APIs-Cloud-4285F4?logo=googlecloud) ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb) |
-| **Frontend** | ![Next.js](https://img.shields.io/badge/Next.js-black?logo=nextdotjs) ![TypeScript](https://img.shields.io/badge/TypeScript-TS-3178C6?logo=typescript) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-38B2AC?logo=tailwindcss) |
+| **Agentic AI** | ![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python) ![LangChain](https://img.shields.io/badge/LangChain-Framework-blue?logo=python) ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20AI-blueviolet) ![LlamaIndex](https://img.shields.io/badge/LlamaIndex-RAG%20Framework-6C5CE7) |
+| **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi) ![MongoDB](https://img.shields.io/badge/MongoDB-Data-47A248?logo=mongodb) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Auth-336791?logo=postgresql) ![MinIO](https://img.shields.io/badge/MinIO-Storage-000000?logo=minio) |
+| **Frontend** | ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react) ![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite) ![TypeScript](https://img.shields.io/badge/TypeScript-TS-3178C6?logo=typescript) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-38B2AC?logo=tailwindcss) |
 
 ### 🧠 LLM Providers
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-black?logo=openai) ![Anthropic](https://img.shields.io/badge/Anthropic-Claude-5A67D8) ![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google) ![Ollama](https://img.shields.io/badge/Ollama-Qwen-000000)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-black?logo=openai) ![Azure OpenAI](https://img.shields.io/badge/Azure-OpenAI-0078D4?logo=microsoft) ![Anthropic](https://img.shields.io/badge/Anthropic-Claude-5A67D8) ![Ollama](https://img.shields.io/badge/Ollama-Local-000000)
 
 > Created by **AICampus** - Agentic AI Research Community
 
 
 ### 🔧 Tech Features
-- AI-Based Data Extraction
-- Structured JSON outputs for reliable data parsing
-- Json Data Handling for minimize AI Model Tokens Cost. improve accuracy of results
-- Error handling with proper response codes
-- Timestamped records with direct CV links
-- Multi-LLM Support: OpenAI GPT, Anthropic Claude, Google Gemini, Opensource Qwen3 via Ollama
+- **LangGraph workflows**: (1) **CV extraction** — upload → extract → summary → save to MongoDB; (2) **Job evaluation** — extract job skills → evaluate candidate → skills match → score decision.
+- AI-based data extraction (personal info, experience, skills) with structured JSON; minimal tokens via compact schemas.
+- **JWT authentication** (PostgreSQL users, roles: job_seeker, hr_manager, admin).
+- **MinIO** object storage for CV files; optional local fallback.
+- Multi-LLM: OpenAI, Azure OpenAI, Anthropic Claude, Ollama (Qwen3 etc.).
+- Error handling, timestamped records, health and config endpoints.
 
 
 ### Automation Workflow
+
+**1. CV extraction workflow** (single CV upload): `upload_cv` → `extract_cv_data` → `generate_summary` → `save_candidate_to_mongodb`.  
+**2. Job evaluation workflow** (score candidate for a job): `extract_job_skills` → `evaluate_candidate` → `skills_match` → `score_decision`.
 
 <img width="1536" height="1024" alt="AI HR Automation Workflow" src="https://github.com/user-attachments/assets/d6c6b065-25fc-4832-875c-63d6cb1cb388" />
 
@@ -103,27 +108,25 @@ By AICampus - Agentic AI Research Community
 
 ## 🚀 Quick Start
 
-Get the project complete source-code as zip file:
-[Backend AI Agent Workflow + Frontend HR Dashboard](https://aicampusmagazines.gumroad.com/l/gscdiq)
+### 1. Clone & Install
 
-### 1. Installation
-Download the complete project code [here](https://aicampusmagazines.gumroad.com/l/gscdiq) 
 ```bash
-cd ai-hr-automation
+# Clone the repository
+git clone <your-repo-url>
+cd agentic-ai-hr-automation-agent-python-langgraph-recruitment-workflow
 
-# Install dependencies - Using uv dependency manager (Speed: 10–100x faster than pip), Solves nested dependencies issues for complex architectures like LangGraph
-## Install uv (a fast Python package manager) using official installers
-## macOS / Linux:
+# Install dependencies (uv: 10–100x faster than pip, handles LangGraph nested deps)
+# Install uv: https://docs.astral.sh/uv/getting-started/installation/
+# macOS / Linux:
 curl -LsSf https://astral.sh/uv/install.sh | sh
-## Verify Installation
 uv --version
-## Install all dependencies listed in pyproject.toml:
-## virtual environment for the project will be automatically created
+
+# Install Python deps from pyproject.toml (.venv created automatically)
 uv sync
 
 # Configure environment
 cp env.example .env
-# Edit .env with your credentials
+# Edit .env: LLM keys, MongoDB, PostgreSQL, MinIO, SECRET_KEY, etc.
 ```
 
 ### 2. Setup & Configure LLM
@@ -137,109 +140,141 @@ cp env.example .env
 - Setup API Keys in .env
 
 
-### 3. Google Cloud Setup
+### 3. Infrastructure (MongoDB, PostgreSQL, MinIO)
 
-1. Create project at [console.cloud.google.com](https://console.cloud.google.com)
-2. Enable APIs:
-   - Google Drive API
-   - Google Sheets API
-3. Create Service Account for your project
-4. Download as `credentials.json`
-5. Rename the file as `google-service-account-credentials.json`
-6. Enable & setup Google Cloud Storage
+- **MongoDB**: Job posts, candidates, evaluations. Set `MONGODB_URL` (e.g. `mongodb://localhost:27017`).
+- **PostgreSQL**: User auth (JWT). Set `POSTGRES_SERVER`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`. Run migrations if needed (Alembic).
+- **MinIO**: CV file storage. Set `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. With Docker Compose, MinIO starts automatically.
 
+Optional: Google Drive/Sheets for logging can be configured separately if you use that integration.
 
 ### 4. Run API Server
-```bash
-# Development
-uvicorn src.fastapi_api:app --reload --port 8000
 
+```bash
+# Development (from project root)
+uv run uvicorn backend.main:app --reload --port 8000
+
+# Or: python -m backend.main (uses HOST/PORT from .env)
 # Production
-uvicorn src.fastapi_api:app --host 0.0.0.0 --port 8000 --workers 4
+uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-### 5. Access Documentation
+### 5. Run Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+# Open http://localhost:5173
+```
+
+### 6. Access Documentation
 
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+- Health: http://localhost:8000/health
 
 
 ## 📖 Usage
 
-### HR Create Job Application - With Dynamic HTML Support
-```python
-# Job endpoints
-@app.post("/api/jobs")
-async def create_job(hr_job_post: HRJobPost):
-    """
-    Create a new job posting
-    - Accepts camelCase from frontend (Next.js)
-    - Stores in MongoDB as camelCase
-    - Python variables are snake_case
-    """
-    # Convert to dict with camelCase aliases for MongoDB
-    hr_job_post_data = hr_job_post.model_dump(by_alias=True, exclude={"id"})
-    hr_job_post_data["createdAt"] = datetime.now().isoformat()
+### Authentication (`/api/auth`)
 
-    # Insert into MongoDB
-    result = await db.hr_job_posts.insert_one(hr_job_post_data)
-    job_id = str(result.inserted_id)
+- `POST /api/auth/register` — Register (name, email, password, role: job_seeker | hr_manager | admin)
+- `POST /api/auth/token` — Login (OAuth2 form: username=email, password) → JWT
+- `GET /api/auth/me` — Current user (Bearer token)
+- `PUT /api/auth/me` — Update profile
+- Admin: `GET/PUT/DELETE /api/auth/users`, `GET /api/auth/stats/users`
 
-    return {
-        "success": True,
-        "jobId": job_id,
-    }
-```
+### Jobs (`/api/jobs`)
 
-### Process Single Candidate
-```python
-@app.post("/api/candidate-application-submit")
-async def candidate_job_application_submit(
-    job_id: str = Form(..., description="Job Id"),
-    name: str = Form(..., description="Candidate's full name"),
-    email: EmailStr = Form(..., description="Candidate's email address"),
-    cv_file: UploadFile = File(..., description="CV PDF file")
-):
-    """
-    API endpoint for Job Form submissions
+- `GET /api/jobs` — List jobs (optional: `active_only`, `limit`)
+- `GET /api/jobs/{job_id}` — Job detail (supports ObjectId or ULID)
+- `POST /api/jobs` — Create job (HR/Admin; body camelCase for frontend)
+- `PUT /api/jobs/{job_id}` — Update job
+- `GET /api/jobs/{job_id}/candidate-recommendations` — Ranked candidates for job (optional `refresh=true` to re-run evaluation)
 
-    Receives form data with file upload:
-    - name: Candidate's full name
-    - email: Candidate's email address
-    - cv_file: Uploaded CV PDF file
+### CV & Candidates
 
-    Returns complete processing results including evaluation
-    """
+- `POST /api/cv/process` — Upload CV (form: candidate_name, candidate_email, cv_file). Runs **CV extraction workflow** (extract → summary → save to MongoDB). Optional: auth for `user_id`/`user_email`.
+- `GET /api/candidates` — List candidates (HR/Admin; filter by job_id, score, sort)
+- `GET /api/candidates/{candidate_id}` — Candidate detail
 
-    logger.info(f"✅ Processing complete - Score: {response.score}/100")
-    logger.info("=" * 80)
-    return response
-```
+### My Resumes (Job seeker)
 
-### HR Dashboard - Front-end Web Application
-Next.js 16 + Typescript
+- `GET /api/my-resumes` — List current user's resumes
+- `GET /api/my-resumes/{resume_id}` — Resume detail
+- `GET /api/my-resumes/{resume_id}/download` — Download CV file (MinIO)
+- `GET /api/my-resumes/{resume_id}/job-recommendations` — Job recommendations for this resume (optional `refresh` to re-run **job evaluation workflow**)
+
+### Dashboard & Export
+
+- `GET /api/dashboard/stats` — Dashboard statistics
+- Export routes for Excel etc. under `/api/export`
+- Batch processing under `/api/batch`
+
+### HR Dashboard – Frontend (React + Vite + TypeScript)
+
 ```bash
-npm install
-npm run dev
-
+cd frontend && npm install && npm run dev
+# http://localhost:5173
 ```
 
 
 ## 🐳 Docker Deployment
+
+Project uses **Docker Compose** (v2: `docker compose`). Services: **MinIO**, **MongoDB**, **Mongo Express**, **PostgreSQL**, **hr-automation** (FastAPI), **frontend** (Vite dev server).
+
 ```bash
-# Build and run
-docker-compose up -d
+# Build and run (development: hot reload for backend + frontend)
+docker compose up -d
+
+# Or use helper scripts
+./bin/start-dev.sh          # Dev mode (hot reload)
+./bin/start-dev.sh --detach # Background
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop
-docker-compose down
+docker compose down
 ```
 
-## 📚 Documentation.md - Detailed instructions to setup and configure the project
-### Step-by-Step Explanations
-DOCUMENTATION.md
+| Service        | Port  | Description                |
+|----------------|-------|----------------------------|
+| Backend API    | 8000  | FastAPI (backend.main:app) |
+| Frontend       | 5173  | Vite dev server           |
+| MinIO API      | 9000  | Object storage             |
+| MinIO Console  | 9001  | Web UI                     |
+| MongoDB        | 27017 | Data                       |
+| Mongo Express  | 8081  | MongoDB Web UI             |
+| PostgreSQL     | 5432  | User auth DB               |
+
+## 📁 Project Structure
+
+```
+backend/                 # FastAPI app (entry: backend.main:app)
+  api/
+    auth.py              # JWT auth routes (/api/auth)
+    dashboard.py         # Registers dashboard routes
+    routes/              # jobs, candidates, cv, my_resumes, dashboard_stats, export, batch
+  config.py              # Config (LLM, MinIO, Postgres, MongoDB)
+  core/                  # database (Postgres), mongodb, dependencies
+  models/, crud/         # User model and CRUD (auth)
+  schemas/               # Pydantic schemas (hr, hr_api, auth)
+  services/
+    hr/                  # automation, data_extraction, batch_processing
+    hr/graph/            # LangGraph: cv_extraction_workflow, job_evaluation_workflow
+    hr/graph/nodes/      # upload, extract, summary, save, evaluate, skills_match, etc.
+  storage.py             # MinIO storage abstraction
+frontend/                # React + Vite + TypeScript (port 5173)
+bin/                     # start-dev.sh, start-prod.sh, stop-dev.sh
+env.example              # Environment template
+docker-compose.yml       # MinIO, MongoDB, Mongo Express, Postgres, hr-automation, frontend
+```
+
+## 📚 Documentation
+
+See **DOCUMENTATION.md** (if present) for step-by-step setup and configuration.
 
 -----------------------------------------------------------
 
