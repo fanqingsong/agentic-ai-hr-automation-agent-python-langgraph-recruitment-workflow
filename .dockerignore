@@ -1,0 +1,56 @@
+# Virtual environments - do not overwrite the venv created by RUN uv sync in Dockerfile
+.venv
+venv
+env
+.env.local
+.env.*.local
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python cache and build
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+.eggs
+dist
+build
+
+# Logs and uploads (runtime data, not needed in image)
+logs/
+uploads/
+*.log
+
+# Tests and coverage (not needed in production image)
+.pytest_cache
+.coverage
+htmlcov/
+.tox
+.nox
+
+# Documentation and misc (optional, reduces image size)
+docs/
+*.md
+!README.md
+
+# Frontend (API image does not serve frontend; frontend has its own Dockerfile)
+frontend/
+
+# Docker and compose (avoid copying into image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Env files with secrets (use build args or runtime env instead)
+.env
+.env.*
+!env.example

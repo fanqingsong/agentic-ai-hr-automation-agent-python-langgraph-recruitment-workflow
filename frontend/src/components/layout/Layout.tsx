@@ -4,11 +4,10 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
@@ -28,18 +27,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             <nav className="flex items-center gap-6">
               {user?.role === 'job_seeker' && (
-                <Link to="/jobs" className="text-gray-700 hover:text-primary">
-                  Jobs
-                </Link>
+                <>
+                  <Link to="/jobs" className="text-gray-700 hover:text-primary">
+                    Jobs
+                  </Link>
+                  <Link to="/resumes" className="text-gray-700 hover:text-primary">
+                    My Resumes
+                  </Link>
+                </>
               )}
 
               {user?.role === 'hr_manager' && (
                 <>
+                  <Link to="/" className="text-gray-700 hover:text-primary">
+                    Home
+                  </Link>
                   <Link to="/jobs" className="text-gray-700 hover:text-primary">
                     Jobs
                   </Link>
                   <Link to="/candidates" className="text-gray-700 hover:text-primary">
                     Candidates
+                  </Link>
+                  <Link to="/batch" className="text-gray-700 hover:text-primary">
+                    Batch
                   </Link>
                 </>
               )}
@@ -51,6 +61,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                   <Link to="/users" className="text-gray-700 hover:text-primary">
                     Users
+                  </Link>
+                  <Link to="/jobs" className="text-gray-700 hover:text-primary">
+                    Jobs
+                  </Link>
+                  <Link to="/candidates" className="text-gray-700 hover:text-primary">
+                    Candidates
+                  </Link>
+                  <Link to="/batch" className="text-gray-700 hover:text-primary">
+                    Batch
+                  </Link>
+                  <Link to="/resumes" className="text-gray-700 hover:text-primary">
+                    My Resumes
                   </Link>
                 </>
               )}

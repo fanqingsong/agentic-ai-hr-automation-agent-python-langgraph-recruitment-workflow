@@ -16,8 +16,8 @@
 
 | 文件 | 行数 | 描述 |
 |------|------|------|
-| [src/minio_storage.py](src/minio_storage.py) | ~350 | MinIO 存储服务类 |
-| [src/upload_service.py](src/upload_service.py) | ~230 | 统一上传服务接口 |
+| [backend/minio_storage.py](backend/minio_storage.py) | ~350 | MinIO 存储服务类 |
+| [backend/upload_service.py](backend/upload_service.py) | ~230 | 统一上传服务接口 |
 | [docker-compose.yml](docker-compose.yml) | 更新 | 添加 MinIO + MongoDB 服务 |
 | [docker-compose.minio.yml](docker-compose.minio.yml) | ~100 | 独立的 MinIO 配置 |
 | [docs/MINIO_SETUP.md](docs/MINIO_SETUP.md) | ~650 | 完整的 MinIO 设置指南 |
@@ -31,7 +31,7 @@
 
 ### 1. MinIO 存储服务类
 
-**文件:** [src/minio_storage.py](src/minio_storage.py)
+**文件:** [backend/minio_storage.py](backend/minio_storage.py)
 
 **主要类和功能:**
 
@@ -70,7 +70,7 @@ class StorageBackend:
 
 ### 2. 上传服务
 
-**文件:** [src/upload_service.py](src/upload_service.py)
+**文件:** [backend/upload_service.py](backend/upload_service.py)
 
 #### CVUploadService 类
 ```python
@@ -107,7 +107,7 @@ MINIO_SECURE=false
 GOOGLE_CLOUD_STORAGE_BUCKET=your-bucket-name
 ```
 
-### 配置类更新 ([src/config.py](src/config.py))
+### 配置类更新 ([backend/config.py](backend/config.py))
 
 新增配置属性:
 ```python

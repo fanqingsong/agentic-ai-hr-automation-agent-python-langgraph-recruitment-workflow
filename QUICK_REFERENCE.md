@@ -15,11 +15,11 @@
 
 | 功能 | 文件 | 描述 |
 |------|------|------|
-| 🔀 **批量处理** | [src/batch_processing.py](src/batch_processing.py) | 并发处理多个简历 |
-| 📊 **数据导出** | [src/data_export.py](src/data_export.py) | CSV/Excel 导出 |
-| 📈 **Dashboard API** | [src/dashboard_api.py](src/dashboard_api.py) | 分析和统计端点 |
-| 🔔 **Webhook** | [src/webhook_integration.py](src/webhook_integration.py) | 事件回调集成 |
-| 💬 **扩展通知** | [src/extended_notifications.py](src/extended_notifications.py) | Telegram & Discord |
+| 🔀 **批量处理** | [backend/batch_processing.py](backend/batch_processing.py) | 并发处理多个简历 |
+| 📊 **数据导出** | [backend/data_export.py](backend/data_export.py) | CSV/Excel 导出 |
+| 📈 **Dashboard API** | [backend/dashboard_api.py](backend/dashboard_api.py) | 分析和统计端点 |
+| 🔔 **Webhook** | [backend/webhook_integration.py](backend/webhook_integration.py) | 事件回调集成 |
+| 💬 **扩展通知** | [backend/extended_notifications.py](backend/extended_notifications.py) | Telegram & Discord |
 
 ---
 
@@ -186,11 +186,6 @@ LLM_PROVIDER=openai|anthropic|gemini|ollama
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GEMINI_API_KEY=AI...
-
-# ===== Google 服务 =====
-GOOGLE_SHEET_ID=your_sheet_id
-GOOGLE_CLOUD_STORAGE_BUCKET=your_bucket
-GOOGLE_CREDENTIALS_JSON_FILE=google-service-account-credentials.json
 
 # ===== 扩展通知 (新) =====
 TELEGRAM_BOT_TOKEN=your_token

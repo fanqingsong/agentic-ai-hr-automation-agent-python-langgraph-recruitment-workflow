@@ -234,7 +234,7 @@ Enterprise-grade Agentic AI platform for HR automation that transforms manual re
 
 ### 1. LangGraph Workflow Engine
 
-**File:** [src/hr_automation.py:83-139](src/hr_automation.py)
+**File:** [backend/hr_automation.py:83-139](backend/hr_automation.py)
 
 The core state machine orchestrating the entire candidate evaluation pipeline.
 
@@ -275,7 +275,7 @@ graph.add_node("evaluate", evaluate_candidate_node, retry_policy=retry_once)
 
 ### 2. LLM Provider Factory
 
-**File:** [src/llm_provider.py:36-187](src/llm_provider.py)
+**File:** [backend/llm_provider.py:36-187](backend/llm_provider.py)
 
 Implements Factory pattern for multi-provider LLM support.
 
@@ -308,7 +308,7 @@ create_job_skills_llm(temperature=0.0, max_tokens=600)
 
 ### 3. Configuration Management
 
-**File:** [src/config.py:14-166](src/config.py)
+**File:** [backend/config.py:14-166](backend/config.py)
 
 Centralized configuration with validation.
 
@@ -374,7 +374,7 @@ MINIO_BUCKET=cv-uploads
 
 ### 4. Data Extraction Layer
 
-**File:** [src/data_extraction.py](src/data_extraction.py)
+**File:** [backend/data_extraction.py](backend/data_extraction.py)
 
 Intelligent CV parsing using LlamaIndex LlamaExtract.
 
@@ -407,7 +407,7 @@ class Qualifications(BaseModel):
 
 ### 5. MinIO Storage Integration
 
-**File:** [src/minio_storage.py:27-300](src/minio_storage.py)
+**File:** [backend/minio_storage.py:27-300](backend/minio_storage.py)
 
 Self-hosted S3-compatible object storage service.
 
@@ -434,7 +434,7 @@ signed_url = self.client.presigned_get_object(
 
 #### Upload Service
 
-**File:** [src/upload_service.py:23-230](src/upload_service.py)
+**File:** [backend/upload_service.py:23-230](backend/upload_service.py)
 
 Unified CV upload service with LangGraph integration.
 
@@ -450,7 +450,7 @@ class CVUploadService:
 
 ### 6. FastAPI Application
 
-**File:** [src/fastapi_api.py](src/fastapi_api.py)
+**File:** [backend/fastapi_api.py](backend/fastapi_api.py)
 
 Async REST API server with Pydantic validation.
 
@@ -489,7 +489,7 @@ async def lifespan(app: FastAPI):
 
 ### Core State Object
 
-**File:** [src/data_models.py:83-110](src/data_models.py)
+**File:** [backend/data_models.py:83-110](backend/data_models.py)
 
 ```python
 class AgentState(TypedDict):
@@ -968,7 +968,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN pip install uv && uv sync --frozen
 
-COPY src/ ./src/
+COPY backend/ ./backend/
 
 EXPOSE 8000
 
@@ -1222,7 +1222,7 @@ class ExtendedQualifications(BaseModel):
 
 ```
 agentic-ai-hr-automation/
-├── src/
+├── backend/
 │   ├── __init__.py
 │   ├── config.py                    # Configuration management
 │   ├── data_models.py               # Pydantic models & AgentState

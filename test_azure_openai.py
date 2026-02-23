@@ -19,7 +19,7 @@ def test_config():
     print("1. Testing Configuration Loading")
     print("=" * 60)
 
-    from src.config import Config
+    from backend.config import Config
 
     print(f"✓ LLM Provider: {Config.LLM_PROVIDER}")
 
@@ -48,7 +48,7 @@ def test_llm_creation():
     print("2. Testing LLM Factory")
     print("=" * 60)
 
-    from src.llm_provider import LLMFactory, create_summary_llm
+    from backend.services.llm_provider import LLMFactory, create_summary_llm
 
     try:
         # Test factory method
@@ -76,7 +76,7 @@ def test_simple_inference():
     print("3. Testing Simple Inference")
     print("=" * 60)
 
-    from src.llm_provider import create_summary_llm
+    from backend.services.llm_provider import create_summary_llm
 
     try:
         llm = create_summary_llm(provider="azure")
@@ -111,25 +111,24 @@ def test_hr_workflow():
     print("=" * 60)
 
     try:
-        from src.hr_automation import create_hr_workflow
-        from src.data_models import HRJobPost
+        from backend.services.hr.graph import create_cv_extraction_workflow, create_job_evaluation_workflow
+        from backend.schemas.hr_api import HRJobPost, JobApplication, HRUserResponse
 
-        # Create a simple job post
-        job_post = HRJobPost(
-            job_id="test_azure_001",
-            job_title="Python Developer",
-            company="Test Company",
-            location="Remote",
+        # Create a simple job post (schema: job_application + hr)
+        job_app = JobApplication(
+            title="Python Developer",
             description="Looking for a Python developer with FastAPI experience.",
-            required_skills=["Python", "FastAPI", "MongoDB"],
-            experience_level="Mid-Senior"
+            description_html="",
         )
+        hr_user = HRUserResponse(id="test_azure_001", name="Test HR", email="hr@test.com")
+        job_post = HRJobPost(job_application=job_app, hr=hr_user)
 
-        print(f"✓ Test job post created: {job_post.job_title}")
+        print(f"✓ Test job post created: {job_post.job_application.title}")
 
-        # Create workflow
-        workflow = create_hr_workflow()
-        print("✓ HR workflow created with Azure OpenAI")
+        # Create workflows (CV extraction + job evaluation)
+        g1 = create_cv_extraction_workflow()
+        g2 = create_job_evaluation_workflow()
+        print("✓ HR workflows (Graph1 + Graph2) created with Azure OpenAI")
 
         print("✅ HR workflow integration ready")
         print()
@@ -150,7 +149,7 @@ def main():
     print()
 
     # Check if Azure is configured
-    from src.config import Config
+    from backend.config import Config
 
     if Config.LLM_PROVIDER != "azure":
         print("⚠️  WARNING: LLM_PROVIDER is not set to 'azure'")
@@ -187,7 +186,7 @@ def main():
         print("Next steps:")
         print("1. Configure your .env file with Azure OpenAI credentials")
         print("2. Set LLM_PROVIDER=azure")
-        print("3. Run the application: python -m src.fastapi_api")
+        print("3. Run the application: uv run uvicorn backend.main:app")
         print("4. Submit a test CV via the API")
         print()
 

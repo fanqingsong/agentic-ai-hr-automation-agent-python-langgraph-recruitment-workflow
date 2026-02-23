@@ -2,12 +2,26 @@
  * Authentication hooks
  */
 
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authAPI } from '@/lib/api';
 import { User, TokenResponse } from '@/lib/types';
 
 export function useAuth() {
   const queryClient = useQueryClient();
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem('access_token')
+  );
+
+  // Listen for storage changes (e.g., from other tabs)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem('access_token'));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ['auth', 'user'],
@@ -17,6 +31,7 @@ export function useAuth() {
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!token, // Only run query if token exists
   });
 
   const loginMutation = useMutation<TokenResponse, Error, { email: string; password: string }>({
@@ -26,6 +41,7 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       localStorage.setItem('access_token', data.access_token);
+      setToken(data.access_token); // Update local state
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
   });
@@ -48,6 +64,7 @@ export function useAuth() {
 
   const logout = () => {
     localStorage.removeItem('access_token');
+    setToken(null); // Update local state
     queryClient.clear();
     window.location.href = '/login';
   };
@@ -57,9 +74,31 @@ export function useAuth() {
     isLoading,
     error,
     isAuthenticated: !!user,
-    login: loginMutation.mutate,
+    login: async (credentials: { email: string; password: string }) => {
+      // Wrapper that returns promise for backward compatibility
+      return new Promise((resolve, reject) => {
+        loginMutation.mutate(
+          credentials,
+          {
+            onSuccess: (data) => resolve(data),
+            onError: (error) => reject(error),
+          }
+        );
+      });
+    },
     loginAsync: loginMutation.mutateAsync,
-    register: registerMutation.mutate,
+    register: async (data: { email: string; password: string; name: string; role: string }) => {
+      // Wrapper that returns promise for better error handling
+      return new Promise((resolve, reject) => {
+        registerMutation.mutate(
+          data,
+          {
+            onSuccess: (responseData) => resolve(responseData),
+            onError: (error) => reject(error),
+          }
+        );
+      });
+    },
     registerAsync: registerMutation.mutateAsync,
     logout,
     isLoggingIn: loginMutation.isPending,

@@ -13,10 +13,10 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.database import init_db, SessionLocal
-from src.crud.user import create_user, get_user_by_email
-from src.data_models import UserCreate, UserRole
-from src.config import Config
+from backend.core.database import init_db, SessionLocal
+from backend.crud.user import create_user, get_user_by_email
+from backend.schemas.auth import UserCreate, UserRole
+from backend.config import Config
 
 
 def create_default_admin():
@@ -86,7 +86,7 @@ def main():
         print("=" * 80)
         print()
         print("Next steps:")
-        print("1. Start the application: docker-compose up or python -m src.fastapi_api")
+        print("1. Start the application: docker-compose up or uv run uvicorn backend.main:app")
         print("2. Access API docs: http://localhost:8000/docs")
         print("3. Login with admin credentials")
         print("4. CHANGE THE ADMIN PASSWORD IMMEDIATELY!")

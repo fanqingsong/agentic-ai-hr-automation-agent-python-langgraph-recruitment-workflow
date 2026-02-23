@@ -12,7 +12,7 @@
 
 ### 1. ✅ 批量简历处理功能
 
-**文件:** [src/batch_processing.py](src/batch_processing.py) (~280 行)
+**文件:** [backend/batch_processing.py](backend/batch_processing.py) (~280 行)
 
 **功能特性:**
 - 并发处理多个候选人简历 (可配置并发数)
@@ -36,7 +36,7 @@ GET /api/batch/{batch_id}/export
 
 ### 2. ✅ 候选人数据导出 (CSV/Excel)
 
-**文件:** [src/data_export.py](src/data_export.py) (~370 行)
+**文件:** [backend/data_export.py](backend/data_export.py) (~370 行)
 
 **功能特性:**
 - **CSV 导出**: 通用格式，易于数据处理
@@ -61,7 +61,7 @@ POST /api/export/candidates?format=csv|xlsx
 
 ### 3. ✅ HR Dashboard API 端点
 
-**文件:** [src/dashboard_api.py](src/dashboard_api.py) (~520 行)
+**文件:** [backend/dashboard_api.py](backend/dashboard_api.py) (~520 行)
 
 **功能特性:**
 - 仪表板统计概览
@@ -91,7 +91,7 @@ POST /api/export/candidates?format=csv|xlsx
 
 ### 4. ✅ Webhook 回调集成
 
-**文件:** [src/webhook_integration.py](src/webhook_integration.py) (~380 行)
+**文件:** [backend/webhook_integration.py](backend/webhook_integration.py) (~380 行)
 
 **功能特性:**
 - 事件订阅管理
@@ -142,7 +142,7 @@ subscribe_to_webhook(
 
 ### 5. ✅ 扩展通知渠道 (Telegram, Discord)
 
-**文件:** [src/extended_notifications.py](src/extended_notifications.py) (~470 行)
+**文件:** [backend/extended_notifications.py](backend/extended_notifications.py) (~470 行)
 
 **Telegram 通知:**
 - 富文本 HTML 格式
@@ -208,11 +208,11 @@ Experienced software engineer with 5 years...
 
 | 文件 | 行数 | 功能 |
 |------|------|------|
-| src/batch_processing.py | ~280 | 批量处理 |
-| src/data_export.py | ~370 | 数据导出 |
-| src/dashboard_api.py | ~520 | Dashboard API |
-| src/webhook_integration.py | ~380 | Webhook 集成 |
-| src/extended_notifications.py | ~470 | 扩展通知 |
+| backend/batch_processing.py | ~280 | 批量处理 |
+| backend/data_export.py | ~370 | 数据导出 |
+| backend/dashboard_api.py | ~520 | Dashboard API |
+| backend/webhook_integration.py | ~380 | Webhook 集成 |
+| backend/extended_notifications.py | ~470 | 扩展通知 |
 
 **总代码量:** ~2,020 行
 
@@ -220,7 +220,7 @@ Experienced software engineer with 5 years...
 
 | 文件 | 修改内容 |
 |------|---------|
-| src/fastapi_api.py | 集成 Dashboard API 路由 |
+| backend/fastapi_api.py | 集成 Dashboard API 路由 |
 | pyproject.toml | 添加 xlsxwriter 依赖 |
 
 ---

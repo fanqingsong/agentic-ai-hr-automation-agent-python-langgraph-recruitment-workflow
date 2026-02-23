@@ -19,12 +19,12 @@
 
 | 文件 | 描述 |
 |------|------|
-| [src/database.py](src/database.py) | PostgreSQL 数据库连接 |
-| [src/security.py](src/security.py) | JWT Token 和密码哈希 |
-| [src/models/user.py](src/models/user.py) | SQLAlchemy 用户模型 |
-| [src/crud/user.py](src/crud/user.py) | 用户 CRUD 操作 |
-| [src/dependencies.py](src/dependencies.py) | 认证和权限依赖 |
-| [src/auth_routes.py](src/auth_routes.py) | 认证 API 路由 |
+| [backend/database.py](backend/database.py) | PostgreSQL 数据库连接 |
+| [backend/security.py](backend/security.py) | JWT Token 和密码哈希 |
+| [backend/models/user.py](backend/models/user.py) | SQLAlchemy 用户模型 |
+| [backend/crud/user.py](backend/crud/user.py) | 用户 CRUD 操作 |
+| [backend/dependencies.py](backend/dependencies.py) | 认证和权限依赖 |
+| [backend/auth_routes.py](backend/auth_routes.py) | 认证 API 路由 |
 | [init_auth_db.py](init_auth_db.py) | 数据库初始化脚本 |
 
 ---
@@ -33,9 +33,9 @@
 
 | 文件 | 更改 |
 |------|------|
-| [src/data_models.py](src/data_models.py) | 添加用户认证模型 |
-| [src/config.py](src/config.py) | 添加 JWT 和 PostgreSQL 配置 |
-| [src/fastapi_api.py](src/fastapi_api.py) | 集成认证路由 |
+| [backend/data_models.py](backend/data_models.py) | 添加用户认证模型 |
+| [backend/config.py](backend/config.py) | 添加 JWT 和 PostgreSQL 配置 |
+| [backend/fastapi_api.py](backend/fastapi_api.py) | 集成认证路由 |
 | [docker-compose.yml](docker-compose.yml) | 添加 PostgreSQL 服务 |
 | [pyproject.toml](pyproject.toml) | 添加认证依赖 |
 | [env.example](env.example) | 添加认证配置示例 |

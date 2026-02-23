@@ -36,12 +36,12 @@
 ### 后端认证（16 个文件）
 
 **核心功能:**
-- [src/database.py](src/database.py) - PostgreSQL 连接管理
-- [src/security.py](src/security.py) - JWT 和密码哈希
-- [src/models/user.py](src/models/user.py) - SQLAlchemy 用户模型
-- [src/crud/user.py](src/crud/user.py) - 用户 CRUD 操作
-- [src/dependencies.py](src/dependencies.py) - 认证和权限依赖
-- [src/auth_routes.py](src/auth_routes.py) - 认证 API 路由
+- [backend/database.py](backend/database.py) - PostgreSQL 连接管理
+- [backend/security.py](backend/security.py) - JWT 和密码哈希
+- [backend/models/user.py](backend/models/user.py) - SQLAlchemy 用户模型
+- [backend/crud/user.py](backend/crud/user.py) - 用户 CRUD 操作
+- [backend/dependencies.py](backend/dependencies.py) - 认证和权限依赖
+- [backend/auth_routes.py](backend/auth_routes.py) - 认证 API 路由
 
 **工具和配置:**
 - [init_auth_db.py](init_auth_db.py) - 数据库初始化脚本
@@ -58,15 +58,15 @@
 - [frontend/nginx.conf](frontend/nginx.conf) - Nginx 配置
 
 **核心代码:**
-- [frontend/src/main.tsx](frontend/src/main.tsx) - 应用入口
-- [frontend/src/App.tsx](frontend/src/App.tsx) - 路由配置
-- [frontend/src/lib/api.ts](frontend/src/lib/api.ts) - API 客户端
-- [frontend/src/hooks/useAuth.ts](frontend/src/hooks/useAuth.ts) - 认证 Hook
-- [frontend/src/components/auth/LoginForm.tsx](frontend/src/components/auth/LoginForm.tsx) - 登录表单
-- [frontend/src/components/auth/RegisterForm.tsx](frontend/src/components/auth/RegisterForm.tsx) - 注册表单
-- [frontend/src/components/auth/ProtectedRoute.tsx](frontend/src/components/auth/ProtectedRoute.tsx) - 受保护路由
-- [frontend/src/components/layout/Layout.tsx](frontend/src/components/layout/Layout.tsx) - 主布局
-- [frontend/src/components/ui/](frontend/src/components/ui/) - UI 组件库
+- [frontend/backend/main.tsx](frontend/backend/main.tsx) - 应用入口
+- [frontend/backend/App.tsx](frontend/backend/App.tsx) - 路由配置
+- [frontend/backend/lib/api.ts](frontend/backend/lib/api.ts) - API 客户端
+- [frontend/backend/hooks/useAuth.ts](frontend/backend/hooks/useAuth.ts) - 认证 Hook
+- [frontend/backend/components/auth/LoginForm.tsx](frontend/backend/components/auth/LoginForm.tsx) - 登录表单
+- [frontend/backend/components/auth/RegisterForm.tsx](frontend/backend/components/auth/RegisterForm.tsx) - 注册表单
+- [frontend/backend/components/auth/ProtectedRoute.tsx](frontend/backend/components/auth/ProtectedRoute.tsx) - 受保护路由
+- [frontend/backend/components/layout/Layout.tsx](frontend/backend/components/layout/Layout.tsx) - 主布局
+- [frontend/backend/components/ui/](frontend/backend/components/ui/) - UI 组件库
 
 **文档:**
 - [FRONTEND_IMPLEMENTATION.md](FRONTEND_IMPLEMENTATION.md) - 前端实现文档

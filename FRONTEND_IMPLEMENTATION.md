@@ -29,7 +29,7 @@
 
 ```
 frontend/
-├── src/
+├── backend/
 │   ├── components/
 │   │   ├── ui/                    # shadcn/ui 基础组件
 │   │   │   ├── button.tsx
@@ -71,7 +71,7 @@ frontend/
 
 ## 核心功能实现
 
-### 1. API 客户端 (src/lib/api.ts)
+### 1. API 客户端 (backend/lib/api.ts)
 
 ```typescript
 // Axios 配置
@@ -85,7 +85,7 @@ import { authAPI } from '@/lib/api';
 const { data } = await authAPI.login(email, password);
 ```
 
-### 2. 认证 Hook (src/hooks/useAuth.ts)
+### 2. 认证 Hook (backend/hooks/useAuth.ts)
 
 ```typescript
 const {
@@ -99,24 +99,24 @@ const {
 
 ### 3. 认证组件
 
-**登录表单** (src/components/auth/LoginForm.tsx):
+**登录表单** (backend/components/auth/LoginForm.tsx):
 - 邮箱和密码输入
 - 自动保存 JWT token
 - 错误处理
 - 演示账户提示
 
-**注册表单** (src/components/auth/RegisterForm.tsx):
+**注册表单** (backend/components/auth/RegisterForm.tsx):
 - 姓名、邮箱、密码、角色选择
 - 密码确认
 - 客户端验证
 - 角色选项：job_seeker, hr_manager
 
-**受保护路由** (src/components/auth/ProtectedRoute.tsx):
+**受保护路由** (backend/components/auth/ProtectedRoute.tsx):
 - 自动检查认证状态
 - 重定向到登录页
 - 加载状态
 
-### 4. 布局组件 (src/components/layout/Layout.tsx)
+### 4. 布局组件 (backend/components/layout/Layout.tsx)
 
 ```typescript
 // 功能

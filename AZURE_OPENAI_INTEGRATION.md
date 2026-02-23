@@ -18,8 +18,8 @@
 
 | 文件 | 更改内容 | 行数 |
 |------|---------|------|
-| [src/llm_provider.py](src/llm_provider.py) | 添加 Azure OpenAI 支持和工厂方法 | +50 |
-| [src/config.py](src/config.py) | 添加 Azure OpenAI 配置变量 | +8 |
+| [backend/llm_provider.py](backend/llm_provider.py) | 添加 Azure OpenAI 支持和工厂方法 | +50 |
+| [backend/config.py](backend/config.py) | 添加 Azure OpenAI 配置变量 | +8 |
 
 **总代码量:** ~58 行
 
@@ -37,7 +37,7 @@
 
 ### 1. Azure OpenAI LLM Provider
 
-**文件:** [src/llm_provider.py](src/llm_provider.py)
+**文件:** [backend/llm_provider.py](backend/llm_provider.py)
 
 #### 新增枚举值
 
@@ -123,7 +123,7 @@ AZURE_OPENAI_MODEL=gpt-4o-mini
 AZURE_OPENAI_API_VERSION=2024-02-15-preview
 ```
 
-### 配置类 ([src/config.py](src/config.py))
+### 配置类 ([backend/config.py](backend/config.py))
 
 新增配置属性:
 

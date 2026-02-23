@@ -34,9 +34,9 @@ ls -la
 # ✅ pyproject.toml
 # ✅ env.example
 # ✅ init_auth_db.py
-# ✅ src/database.py
-# ✅ src/security.py
-# ✅ src/auth_routes.py
+# ✅ backend/database.py
+# ✅ backend/security.py
+# ✅ backend/auth_routes.py
 # ✅ frontend/ 目录
 ```
 

@@ -8,7 +8,7 @@ This document describes the new features added to the AI HR Automation platform.
 
 ## 1. Batch Processing
 
-### Module: `src/batch_processing.py`
+### Module: `backend/batch_processing.py`
 
 Process multiple candidate CVs concurrently with controlled parallelism.
 
@@ -105,7 +105,7 @@ Request:
 
 ## 2. Data Export
 
-### Module: `src/data_export.py`
+### Module: `backend/data_export.py`
 
 Export candidate data to CSV and Excel formats with formatting.
 
@@ -189,7 +189,7 @@ Returns downloadable file.
 
 ## 3. HR Dashboard API
 
-### Module: `src/dashboard_api.py`
+### Module: `backend/dashboard_api.py`
 
 Comprehensive API endpoints for HR analytics dashboard.
 
@@ -304,7 +304,7 @@ Response:
 
 ## 4. Webhook Integration
 
-### Module: `src/webhook_integration.py`
+### Module: `backend/webhook_integration.py`
 
 Real-time webhook notifications for event-driven integrations.
 
@@ -387,7 +387,7 @@ unsubscribe_from_webhook(
 
 ## 5. Extended Notifications
 
-### Module: `src/extended_notifications.py`
+### Module: `backend/extended_notifications.py`
 
 Additional notification channels: Telegram and Discord.
 

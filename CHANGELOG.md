@@ -24,11 +24,11 @@ Successfully implemented 5 major feature enhancements to the AI HR Automation pl
 
 | File | Lines | Description |
 |------|-------|-------------|
-| [src/batch_processing.py](src/batch_processing.py) | ~280 | Concurrent batch CV processing with semaphore control |
-| [src/data_export.py](src/data_export.py) | ~370 | CSV/Excel export with formatting and summary statistics |
-| [src/dashboard_api.py](src/dashboard_api.py) | ~520 | HR Dashboard API endpoints for analytics |
-| [src/webhook_integration.py](src/webhook_integration.py) | ~380 | Webhook subscription and delivery system |
-| [src/extended_notifications.py](src/extended_notifications.py) | ~470 | Telegram & Discord notification channels |
+| [backend/batch_processing.py](backend/batch_processing.py) | ~280 | Concurrent batch CV processing with semaphore control |
+| [backend/data_export.py](backend/data_export.py) | ~370 | CSV/Excel export with formatting and summary statistics |
+| [backend/dashboard_api.py](backend/dashboard_api.py) | ~520 | HR Dashboard API endpoints for analytics |
+| [backend/webhook_integration.py](backend/webhook_integration.py) | ~380 | Webhook subscription and delivery system |
+| [backend/extended_notifications.py](backend/extended_notifications.py) | ~470 | Telegram & Discord notification channels |
 
 ### Documentation
 
@@ -47,7 +47,7 @@ Successfully implemented 5 major feature enhancements to the AI HR Automation pl
 
 ### 1. Batch Processing Module
 
-**File:** [src/batch_processing.py](src/batch_processing.py)
+**File:** [backend/batch_processing.py](backend/batch_processing.py)
 
 **Key Components:**
 - `BatchProcessor` class with semaphore-based concurrency control
@@ -77,7 +77,7 @@ GET /api/batch/{batch_id}/export
 
 ### 2. Data Export Module
 
-**File:** [src/data_export.py](src/data_export.py)
+**File:** [backend/data_export.py](backend/data_export.py)
 
 **Key Components:**
 - `DataExporter` class supporting CSV and Excel formats
@@ -108,7 +108,7 @@ POST /api/export/candidates?format=csv|xlsx
 
 ### 3. HR Dashboard API
 
-**File:** [src/dashboard_api.py](src/dashboard_api.py)
+**File:** [backend/dashboard_api.py](backend/dashboard_api.py)
 
 **Key Components:**
 - `DashboardStats` model for statistics
@@ -153,7 +153,7 @@ POST /api/export/candidates?format=csv|xlsx
 
 ### 4. Webhook Integration
 
-**File:** [src/webhook_integration.py](src/webhook_integration.py)
+**File:** [backend/webhook_integration.py](backend/webhook_integration.py)
 
 **Key Components:**
 - `WebhookManager` class for subscription management
@@ -192,7 +192,7 @@ subscribe_to_webhook(
 
 ### 5. Extended Notifications
 
-**File:** [src/extended_notifications.py](src/extended_notifications.py)
+**File:** [backend/extended_notifications.py](backend/extended_notifications.py)
 
 **Key Components:**
 - `TelegramNotifier` - Telegram Bot API integration
@@ -231,7 +231,7 @@ DISCORD_WEBHOOK_URL=your_webhook_url
 
 ### FastAPI Integration
 
-Modified [src/fastapi_api.py](src/fastapi_api.py):
+Modified [backend/fastapi_api.py](backend/fastapi_api.py):
 
 ```python
 # Added dashboard routes import
