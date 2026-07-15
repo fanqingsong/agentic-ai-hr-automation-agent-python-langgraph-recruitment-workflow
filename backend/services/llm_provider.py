@@ -19,6 +19,7 @@ from langchain_community.chat_models import ChatOllama
 from pydantic import SecretStr
 import os
 from enum import Enum
+from functools import lru_cache
 
 
 # ============================================================================
@@ -245,6 +246,36 @@ class LLMFactory:
 
 
 # ============================================================================
+# CACHED FACTORY
+# ============================================================================
+
+@lru_cache(maxsize=32)
+def get_cached_llm(
+    provider: str = None,
+    model: str = None,
+    temperature: float = 0.3,
+    max_tokens: int = 1000,
+    api_key: str = None,
+    base_url: str = None,
+) -> BaseChatModel:
+    """Return a shared LLM client for the given configuration.
+
+    LangChain chat clients are safe to reuse across concurrent ``ainvoke`` calls,
+    so caching by (provider, model, temperature, max_tokens, ...) avoids
+    re-instantiating a new client (and its HTTP session) on every request.
+    Only hashable args are accepted so the result can be memoized.
+    """
+    return LLMFactory.create_llm(
+        provider=provider,
+        model=model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        api_key=api_key,
+        base_url=base_url,
+    )
+
+
+# ============================================================================
 # CONVENIENCE FUNCTIONS
 # ============================================================================
 
@@ -261,7 +292,7 @@ def create_extraction_llm(
         model: Specific model name (optional)
         api_key: API key (optional, uses env var if not provided)
     """
-    return LLMFactory.create_llm(
+    return get_cached_llm(
         provider=provider,
         model=model,
         temperature=0.2,
@@ -283,7 +314,7 @@ def create_job_skills_llm(
         model: Specific model name (optional)
         api_key: API key (optional, uses env var if not provided)
     """
-    return LLMFactory.create_llm(
+    return get_cached_llm(
         provider=provider,
         model=model,
         temperature=0.0,
@@ -305,7 +336,7 @@ def create_summary_llm(
         model: Specific model name (optional)
         api_key: API key (optional, uses env var if not provided)
     """
-    return LLMFactory.create_llm(
+    return get_cached_llm(
         provider=provider,
         model=model,
         temperature=0.5,
@@ -327,7 +358,7 @@ def create_evaluation_llm(
         model: Specific model name (optional)
         api_key: API key (optional, uses env var if not provided)
     """
-    return LLMFactory.create_llm(
+    return get_cached_llm(
         provider=provider,
         model=model,
         temperature=0.4,

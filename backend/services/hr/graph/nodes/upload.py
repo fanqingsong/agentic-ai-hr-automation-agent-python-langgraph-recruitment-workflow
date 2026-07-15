@@ -2,6 +2,7 @@
 # Upload node: CV upload to storage (MinIO/local)
 # ============================================================================
 
+import asyncio
 import logging
 from typing import Dict, Any
 
@@ -19,7 +20,10 @@ async def upload_cv_node(state: Dict[str, Any]) -> Dict[str, Any]:
             return state
 
         uploader = CVUploadService()
-        result = uploader.upload_cv_file(cv_file_path, state.get("candidate_name", "candidate"))
+        # MinIO SDK is synchronous; offload to a thread to avoid blocking the loop.
+        result = await asyncio.to_thread(
+            uploader.upload_cv_file, cv_file_path, state.get("candidate_name", "candidate")
+        )
 
         if result.get("success"):
             state["cv_file_url"] = result.get("file_url", "")

@@ -2,6 +2,7 @@
 # CV processing route (single upload)
 # ============================================================================
 
+import asyncio
 import logging
 import os
 import shutil
@@ -15,6 +16,12 @@ from backend.core.dependencies import get_optional_user
 from backend.models.user import UserModel
 
 logger = logging.getLogger(__name__)
+
+
+def _save_upload_to_path(upload_file, dest_path: str) -> None:
+    """Write uploaded file to disk (sync; run via asyncio.to_thread)."""
+    with open(dest_path, "wb") as buffer:
+        shutil.copyfileobj(upload_file, buffer)
 
 
 def get_cv_router(db: Any):
@@ -37,8 +44,7 @@ def get_cv_router(db: Any):
             temp_dir = tempfile.mkdtemp()
             temp_file_path = os.path.join(temp_dir, cv_file.filename or "upload.pdf")
 
-            with open(temp_file_path, "wb") as buffer:
-                shutil.copyfileobj(cv_file.file, buffer)
+            await asyncio.to_thread(_save_upload_to_path, cv_file.file, temp_file_path)
 
             logger.info(f"Processing CV for {candidate_name} ({candidate_email})")
 

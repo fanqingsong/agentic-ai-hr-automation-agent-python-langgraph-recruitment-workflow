@@ -4,20 +4,31 @@
 
 import axios from 'axios';
 
+/** API base URL. In dev, default to same-origin so Vite's /api proxy avoids CORS. */
+export function getApiBaseURL(): string {
+  const fromEnv = import.meta.env.VITE_API_URL?.trim();
+  if (fromEnv) return fromEnv;
+  if (import.meta.env.DEV) return '';
+  return 'http://localhost:8000';
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: getApiBaseURL(),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor: add JWT token
+// Request interceptor: add JWT token; let browser set multipart boundary for FormData
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     return config;
   },
@@ -70,7 +81,19 @@ export const jobsAPI = {
   delete: (id: string) => api.delete(`/api/jobs/${id}`),
   /** Candidate recommendations for this job (ranked by job evaluation workflow). refresh=true runs evaluation for all candidates. */
   getCandidateRecommendations: (jobId: string, refresh = false) =>
-    api.get<{ total: number; rankings: { rank: number; candidate: any; score: number | null; reasoning?: string; tag?: string }[] }>(
+    api.get<{
+      total: number;
+      rankings: {
+        rank: number;
+        candidate: any;
+        score: number | null;
+        reasoning?: string;
+        strengths?: string[];
+        gaps?: string[];
+        decision?: string;
+        tag?: string;
+      }[];
+    }>(
       `/api/jobs/${jobId}/candidate-recommendations`,
       { params: { refresh: refresh ? '1' : '0' } }
     ),
@@ -95,6 +118,37 @@ export const dashboardAPI = {
 export const batchAPI = {
   process: (data: any) => api.post('/api/batch/process', data),
   processDirectory: (data: any) => api.post('/api/batch/process-directory', data),
+  /** Multi-file CV import (browser upload). Import-only (no job binding); score against a JD later. */
+  uploadBatch: (
+    formData: FormData,
+    options?: {
+      onUploadProgress?: (e: ProgressEvent) => void;
+      /** Override axios timeout (ms). Defaults to max(10 min, 90s × file count). */
+      timeout?: number;
+    },
+  ) =>
+    api.post<{
+      success: boolean;
+      batch_id: string;
+      summary: {
+        total: number;
+        successful: number;
+        duplicates: number;
+        failed: number;
+        skipped: number;
+      };
+      skipped_files: string[];
+      duplicate_files: {
+        candidate_name?: string;
+        source_folder?: string;
+        relative_path?: string;
+        existing_candidate_id?: string;
+        existing_candidate_name?: string;
+      }[];
+    }>('/api/batch/upload', formData, {
+      timeout: options?.timeout ?? 600_000,
+      onUploadProgress: options?.onUploadProgress as any,
+    }),
   export: (batchId: string) => api.get(`/api/batch/${batchId}/export`, { responseType: 'blob' }),
 };
 

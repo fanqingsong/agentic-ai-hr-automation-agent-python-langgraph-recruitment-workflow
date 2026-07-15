@@ -3,12 +3,55 @@
 # ============================================================================
 
 from datetime import datetime
+from functools import lru_cache
 from typing import Any, Optional
 
+from backend.schemas.hr import JobSkills
 from backend.services.hr.graph import (
     create_cv_extraction_workflow,
     create_job_evaluation_workflow,
 )
+from backend.services.hr.graph.nodes.job_skills import extract_job_skills
+
+
+@lru_cache(maxsize=1)
+def _cv_extraction_app():
+    """Compile the CV extraction graph once and reuse it across requests."""
+    return create_cv_extraction_workflow()
+
+
+@lru_cache(maxsize=1)
+def _job_evaluation_app():
+    """Compile the job evaluation graph once and reuse it across requests."""
+    return create_job_evaluation_workflow()
+
+
+async def _get_job_skills(job_doc: dict, jobs_collection: Any) -> JobSkills:
+    """Return job skills, using the cached value on the job document when present.
+
+    Extracts once via the LLM on a cache miss and persists the result back to the
+    job document so subsequent evaluations (and re-runs) skip the LLM entirely.
+    """
+    cached = job_doc.get("job_skills")
+    if isinstance(cached, dict) and (cached.get("tech_skills") or cached.get("soft_skills")):
+        return JobSkills(**cached)
+
+    description = job_doc.get("job_description") or (
+        job_doc.get("jobApplication") or job_doc.get("job_application") or {}
+    ).get("description", "")
+    skills = await extract_job_skills(description)
+
+    job_id = job_doc.get("_id")
+    if job_id is not None:
+        try:
+            await jobs_collection.update_one(
+                {"_id": job_id},
+                {"$set": {"job_skills": skills.to_dict()}},
+            )
+        except Exception:
+            # Caching is best-effort; evaluation should proceed regardless.
+            pass
+    return skills
 
 
 async def process_cv_upload(
@@ -40,7 +83,7 @@ async def process_cv_upload(
     if user_email is not None:
         initial_state["user_email"] = user_email
 
-    app = create_cv_extraction_workflow()
+    app = _cv_extraction_app()
     final_state = await app.ainvoke(initial_state)
     return final_state
 
@@ -74,8 +117,16 @@ def _candidate_doc_to_state(candidate_doc: dict) -> dict:
     }
 
 
-async def evaluate_job_against_candidate(job_doc: dict, candidate_doc: dict) -> dict:
-    """Run Graph2 for one job + one candidate (from DB). Does not write to DB."""
+async def evaluate_job_against_candidate(
+    job_doc: dict,
+    candidate_doc: dict,
+    job_skills: Optional[JobSkills] = None,
+) -> dict:
+    """Run Graph2 for one job + one candidate (from DB). Does not write to DB.
+
+    When ``job_skills`` is provided the graph reuses it and skips the job-skills
+    LLM call, which avoids re-extracting the same skills for every candidate.
+    """
     initial_state = {
         **_job_doc_to_state(job_doc),
         **_candidate_doc_to_state(candidate_doc),
@@ -83,7 +134,9 @@ async def evaluate_job_against_candidate(job_doc: dict, candidate_doc: dict) -> 
         "errors": [],
         "messages": [],
     }
-    app = create_job_evaluation_workflow()
+    if job_skills is not None:
+        initial_state["job_skills"] = job_skills
+    app = _job_evaluation_app()
     return await app.ainvoke(initial_state)
 
 
@@ -110,10 +163,13 @@ async def evaluate_job_against_all_candidates(
     cursor = candidates_collection.find(query)
     candidates = await cursor.to_list(length=None)
 
+    # Extract (and cache) job skills once, then reuse for every candidate.
+    job_skills = await _get_job_skills(job_doc, jobs_collection)
+
     results = []
     for candidate_doc in candidates:
         try:
-            state = await evaluate_job_against_candidate(job_doc, candidate_doc)
+            state = await evaluate_job_against_candidate(job_doc, candidate_doc, job_skills=job_skills)
             candidate_id = state.get("candidate_id") or str(candidate_doc.get("_id", ""))
             eval_doc = {
                 "candidate_id": candidate_id,
@@ -176,7 +232,9 @@ async def evaluate_candidate_against_all_jobs(
     for job_doc in job_docs:
         jid = str(job_doc.get("_id", ""))
         try:
-            state = await evaluate_job_against_candidate(job_doc, candidate_doc)
+            # Reuse each job's cached skills (extracted once per job on first use).
+            job_skills = await _get_job_skills(job_doc, jobs_collection)
+            state = await evaluate_job_against_candidate(job_doc, candidate_doc, job_skills=job_skills)
             score = state.get("evaluation_score")
             evaluation = state.get("evaluation", {})
             eval_doc = {

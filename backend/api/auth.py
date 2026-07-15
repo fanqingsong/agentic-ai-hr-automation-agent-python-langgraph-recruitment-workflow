@@ -49,6 +49,17 @@ def register(
             detail="Email already registered"
         )
 
+    # Prevent privilege escalation via public registration: anyone can only
+    # self-register as a job seeker. Privileged accounts (hr_manager/admin) must
+    # be provisioned by an administrator, not chosen by the registrant.
+    if user.role != UserRole.JOB_SEEKER or user.is_superuser:
+        logger.warning(
+            "Registration downgraded to job_seeker (requested role=%s, superuser=%s) for %s",
+            user.role, user.is_superuser, user.email,
+        )
+    user.role = UserRole.JOB_SEEKER
+    user.is_superuser = False
+
     try:
         new_user = create_user(db, user)
         logger.info(f"Registration successful - User ID: {new_user.id}, Email: {new_user.email}")

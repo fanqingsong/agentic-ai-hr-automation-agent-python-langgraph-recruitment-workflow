@@ -135,7 +135,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: hr-frontend
     ports:
-      - "5173:5173"
+      - "5174:5173"
     volumes:
       # Mount source code for hot reload
       - ./frontend/src:/app/src
@@ -147,7 +147,10 @@ services:
       - ./frontend/tailwind.config.js:/app/tailwind.config.js
       - ./frontend/postcss.config.js:/app/postcss.config.js
     environment:
-      - VITE_API_URL=http://localhost:8000
+      # Leave VITE_API_URL unset so the browser uses same-origin + Vite /api proxy (no CORS).
+      - VITE_API_PROXY_TARGET=http://hr-automation:8000
+      # HMR client port must match host-facing port (5174), since 5173 is taken on host
+      - VITE_HMR_CLIENT_PORT=5174
     depends_on:
       - hr-automation
     restart: unless-stopped

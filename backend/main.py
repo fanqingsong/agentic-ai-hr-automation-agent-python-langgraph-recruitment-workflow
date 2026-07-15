@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 
 from backend.config import Config
 from backend.core.database import init_db
-from backend.core.mongodb import get_mongo_db
+from backend.core.mongodb import ensure_indexes, get_mongo_db
 from backend.api.auth import router as auth_router
 from backend.api.dashboard import register_dashboard_routes
 from backend.schemas.hr_api import HealthResponse
@@ -49,6 +49,11 @@ async def lifespan(app: FastAPI):
     try:
         init_db()
         logger.info("✅ Database tables initialized successfully")
+        try:
+            from backend.core.seed import seed_default_users
+            seed_default_users()
+        except Exception as seed_err:
+            logger.warning(f"⚠️  Default account seeding failed: {seed_err}")
     except Exception as e:
         err_msg = str(e).lower()
         if "name resolution" in err_msg or "could not translate host" in err_msg or "connection" in err_msg:
@@ -62,6 +67,12 @@ async def lifespan(app: FastAPI):
         else:
             logger.exception("❌ Database initialization failed")
         logger.warning("⚠️  User authentication may not work correctly")
+
+    try:
+        await ensure_indexes(db)
+        logger.info("✅ MongoDB indexes ensured")
+    except Exception as idx_err:
+        logger.warning(f"⚠️  MongoDB index creation failed: {idx_err}")
 
     yield
 
@@ -77,13 +88,49 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+_cors_origins = Config.get_cors_origins()
+if "*" in _cors_origins:
+    # "*" cannot be combined with credentials per the CORS spec; drop credentials.
+    logger.warning("CORS_ORIGINS contains '*'; disabling allow_credentials for spec compliance.")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+def _cors_error_headers(request: Request) -> Dict[str, str]:
+    """CORS headers for responses produced by the generic ``Exception`` handler.
+
+    Starlette runs the ``Exception`` handler inside ServerErrorMiddleware, which
+    sits *outside* CORSMiddleware. Without this, a real 500 reaches the browser
+    with no ``Access-Control-Allow-Origin`` header and surfaces as an opaque
+    "Network Error" / CORS error instead of the actual failure. Re-adding the
+    headers here lets the frontend read the real status and message.
+    """
+    origin = request.headers.get("origin")
+    if not origin:
+        return {}
+    if "*" in _cors_origins:
+        return {"Access-Control-Allow-Origin": "*"}
+    if origin in _cors_origins:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Vary": "Origin",
+        }
+    return {}
+
 
 # Auth routes
 app.include_router(auth_router)
@@ -136,7 +183,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     logger.error(f"Validation error on {request.url}: {exc.errors()}")
     return JSONResponse(
         status_code=422,
-        content={"detail": exc.errors(), "body": getattr(exc, "body", None)},
+        content={"detail": exc.errors()},
+        headers=_cors_error_headers(request),
     )
 
 
@@ -151,6 +199,7 @@ async def general_exception_handler(request: Request, exc: Exception):
             "detail": str(exc) if Config.DEBUG else "An error occurred processing your request",
             "timestamp": datetime.now().isoformat(),
         },
+        headers=_cors_error_headers(request),
     )
 
 
@@ -164,6 +213,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "path": str(request.url),
             "timestamp": datetime.now().isoformat(),
         },
+        headers=_cors_error_headers(request),
     )
 
 

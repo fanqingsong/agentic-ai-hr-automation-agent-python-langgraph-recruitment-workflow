@@ -26,6 +26,20 @@ def json_safe(doc: dict) -> dict:
     return out
 
 
+async def fetch_docs_by_ids(collection, ids: list) -> dict:
+    """Fetch multiple MongoDB documents by _id in a single query.
+
+    Returns a dict keyed by stringified _id for O(1) lookup when enriching
+    list endpoints that would otherwise N+1 loop with find_one per id.
+    """
+    valid_oids = [ObjectId(cid) for cid in ids if cid and ObjectId.is_valid(str(cid))]
+    if not valid_oids:
+        return {}
+    cursor = collection.find({"_id": {"$in": valid_oids}})
+    docs = await cursor.to_list(length=len(valid_oids))
+    return {str(doc["_id"]): doc for doc in docs}
+
+
 def normalize_job_doc(doc: dict) -> dict:
     """Ensure job document has job_title, job_description, hr_email, createdAt for API response."""
     try:

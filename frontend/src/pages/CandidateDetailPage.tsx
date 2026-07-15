@@ -68,7 +68,9 @@ export function CandidateDetailPage() {
         <CardHeader>
           <CardTitle>{data.candidate_name ?? 'Unknown'}</CardTitle>
           <CardDescription>
-            {data.candidate_email ?? '—'} · {data.job_title || data.job_id ? `Job: ${data.job_title || data.job_id}` : ''}
+            {data.candidate_email ?? '—'}
+            {data.source_folder ? ` · 来源文件夹: ${data.source_folder}` : ''}
+            {data.job_title || data.job_id ? ` · Job: ${data.job_title || data.job_id}` : ''}
             {data.timestamp && ` · ${new Date(data.timestamp).toLocaleDateString()}`}
           </CardDescription>
         </CardHeader>

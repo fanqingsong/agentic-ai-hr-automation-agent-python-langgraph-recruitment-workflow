@@ -8,16 +8,19 @@ import tempfile
 from datetime import datetime
 from typing import Any, Optional
 
-from bson import ObjectId
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from typing import Annotated
 
+from backend.api.routes.common import fetch_docs_by_ids
 from backend.core.dependencies import require_manager_or_admin
 from backend.models.user import UserModel
 from backend.services.hr.data_export import DataExporter
 
 logger = logging.getLogger(__name__)
+
+# Cap export size to avoid loading unbounded result sets into memory.
+EXPORT_MAX_ROWS = 5000
 
 
 def get_export_router(db: Any):
@@ -42,12 +45,14 @@ def get_export_router(db: Any):
                 evals_query = {"job_id": job_id}
                 if score_query:
                     evals_query["score"] = score_query
-                evals_cursor = db.candidate_evaluations.find(evals_query).sort("timestamp", -1)
-                evals = await evals_cursor.to_list(length=None)
+                evals_cursor = db.candidate_evaluations.find(evals_query).sort("timestamp", -1).limit(EXPORT_MAX_ROWS)
+                evals = await evals_cursor.to_list(length=EXPORT_MAX_ROWS)
                 candidates_collection = db.candidates
+                candidate_ids = [ev.get("candidate_id") for ev in evals if ev.get("candidate_id")]
+                cand_map = await fetch_docs_by_ids(candidates_collection, candidate_ids)
                 for ev in evals:
                     cid = ev.get("candidate_id")
-                    cand = await candidates_collection.find_one({"_id": ObjectId(cid)}) if cid and ObjectId.is_valid(cid) else None
+                    cand = cand_map.get(str(cid)) if cid else None
                     row = {
                         "_id": cid,
                         "candidate_name": (cand or {}).get("candidate_name", ""),
@@ -72,8 +77,8 @@ def get_export_router(db: Any):
                         score_query["$lte"] = max_score
                     query["evaluation_score"] = score_query
                 candidates_collection = db.candidates
-                cursor = candidates_collection.find(query).sort("timestamp", -1)
-                candidates = await cursor.to_list(length=None)
+                cursor = candidates_collection.find(query).sort("timestamp", -1).limit(EXPORT_MAX_ROWS)
+                candidates = await cursor.to_list(length=EXPORT_MAX_ROWS)
 
             if not candidates:
                 raise HTTPException(status_code=404, detail="No candidates found matching criteria")

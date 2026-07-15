@@ -32,10 +32,85 @@ def get_dashboard_stats_router(db: Any):
                 query["job_id"] = job_id
 
             candidates_collection = db.candidates
-            cursor = candidates_collection.find(query).sort("timestamp", -1)
-            all_candidates = await cursor.to_list(length=None)
 
-            if not all_candidates:
+            # Compute stats in the database instead of loading every matching document.
+            pipeline = [
+                {"$match": query},
+                {
+                    "$facet": {
+                        "counts": [
+                            {
+                                "$group": {
+                                    "_id": None,
+                                    "total": {"$sum": 1},
+                                    "successful": {
+                                        "$sum": {
+                                            "$cond": [
+                                                {
+                                                    "$ne": [
+                                                        {"$ifNull": ["$evaluation_score", "MISSING"]},
+                                                        "MISSING",
+                                                    ]
+                                                },
+                                                1,
+                                                0,
+                                            ]
+                                        }
+                                    },
+                                }
+                            }
+                        ],
+                        "score_stats": [
+                            {
+                                "$match": {
+                                    "evaluation_score": {"$exists": True, "$ne": None}
+                                }
+                            },
+                            {
+                                "$group": {
+                                    "_id": None,
+                                    "avg": {"$avg": "$evaluation_score"},
+                                    "max": {"$max": "$evaluation_score"},
+                                    "min": {"$min": "$evaluation_score"},
+                                    "high": {
+                                        "$sum": {
+                                            "$cond": [{"$gte": ["$evaluation_score", 70]}, 1, 0]
+                                        }
+                                    },
+                                    "low": {
+                                        "$sum": {
+                                            "$cond": [{"$lt": ["$evaluation_score", 50]}, 1, 0]
+                                        }
+                                    },
+                                }
+                            },
+                        ],
+                        "recent": [
+                            {"$sort": {"timestamp": -1}},
+                            {"$limit": 10},
+                        ],
+                        "top": [
+                            {
+                                "$match": {
+                                    "evaluation_score": {"$exists": True, "$ne": None}
+                                }
+                            },
+                            {"$sort": {"evaluation_score": -1}},
+                            {"$limit": 10},
+                        ],
+                    }
+                },
+            ]
+            agg_result = await (await candidates_collection.aggregate(pipeline)).to_list(length=1)
+            facet = (agg_result[0] if agg_result else {}) or {}
+
+            counts = (facet.get("counts") or [{}])[0]
+            score_stats = (facet.get("score_stats") or [{}])[0]
+            recent_docs = facet.get("recent") or []
+            top_docs = facet.get("top") or []
+
+            total = counts.get("total", 0)
+            if total == 0:
                 return DashboardStats(
                     total_candidates=0,
                     successful_evaluations=0,
@@ -49,15 +124,10 @@ def get_dashboard_stats_router(db: Any):
                     top_candidates=[],
                 )
 
-            total = len(all_candidates)
-            successful = [c for c in all_candidates if c.get("evaluation_score") is not None]
-            failed = total - len(successful)
-            scores = [c.get("evaluation_score", 0) for c in successful]
-            high_scorers = [s for s in scores if s >= 70]
-            low_scorers = [s for s in scores if s < 50]
-            top_candidates = sorted(successful, key=lambda x: x.get("evaluation_score", 0), reverse=True)[:10]
+            successful_count = counts.get("successful", 0)
+            failed = total - successful_count
 
-            recent_safe = [json_safe(c) for c in all_candidates[:10]]
+            recent_safe = [json_safe(c) for c in recent_docs]
             top_safe = [
                 json_safe({
                     "name": c.get("candidate_name"),
@@ -66,18 +136,18 @@ def get_dashboard_stats_router(db: Any):
                     "job_title": c.get("job_title"),
                     "timestamp": c.get("timestamp"),
                 })
-                for c in top_candidates
+                for c in top_docs
             ]
 
             return DashboardStats(
                 total_candidates=total,
-                successful_evaluations=len(successful),
+                successful_evaluations=successful_count,
                 failed_evaluations=failed,
-                average_score=sum(scores) / len(scores) if scores else 0.0,
-                highest_score=max(scores) if scores else 0,
-                lowest_score=min(scores) if scores else 0,
-                high_scorers_count=len(high_scorers),
-                low_scorers_count=len(low_scorers),
+                average_score=float(score_stats.get("avg") or 0.0),
+                highest_score=int(score_stats.get("max") or 0),
+                lowest_score=int(score_stats.get("min") or 0),
+                high_scorers_count=int(score_stats.get("high") or 0),
+                low_scorers_count=int(score_stats.get("low") or 0),
                 recent_candidates=recent_safe,
                 top_candidates=top_safe,
             )
@@ -108,7 +178,7 @@ def get_dashboard_stats_router(db: Any):
                         }
                     },
                 ]
-                result = await evals_collection.aggregate(pipeline).to_list(None)
+                result = await (await evals_collection.aggregate(pipeline)).to_list(None)
                 for i, bucket in enumerate(result):
                     distribution.append({
                         "range": ranges[i] if i < len(ranges) else "other",
@@ -132,7 +202,7 @@ def get_dashboard_stats_router(db: Any):
                         }
                     },
                 ]
-                result = await candidates_collection.aggregate(pipeline).to_list(None)
+                result = await (await candidates_collection.aggregate(pipeline)).to_list(None)
                 for i, bucket in enumerate(result):
                     distribution.append({
                         "range": ranges[i] if i < len(ranges) else "other",

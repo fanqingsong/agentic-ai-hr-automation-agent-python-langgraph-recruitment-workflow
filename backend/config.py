@@ -105,6 +105,25 @@ class Config:
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
     WORKERS: int = int(os.getenv("WORKERS", "4"))
 
+    # CORS allowed origins (comma-separated). Avoid "*" together with credentials.
+    CORS_ORIGINS: str = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://localhost:5174,http://localhost:3000,"
+        "http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:3000",
+    )
+
+    # Root directory that server-side batch directory processing is confined to.
+    # Prevents arbitrary filesystem access (path traversal) via the API form field.
+    BATCH_ALLOWED_DIR: str = os.getenv(
+        "BATCH_ALLOWED_DIR",
+        str(Path(__file__).resolve().parent.parent / "uploads"),
+    )
+
+    @classmethod
+    def get_cors_origins(cls) -> list:
+        """Parse CORS_ORIGINS into a list of origins (drops blanks)."""
+        return [o.strip() for o in cls.CORS_ORIGINS.split(",") if o.strip()]
+
     # ========================================================================
     # HELPER METHODS
     # ========================================================================
@@ -177,6 +196,14 @@ class Config:
 
         if missing:
             raise ValueError(f"Missing required configuration: {', '.join(missing)}")
+
+        # Warn loudly when the default (insecure) JWT secret is still in use.
+        if cls.SECRET_KEY == "your-secret-key-change-in-production":
+            import warnings
+            warnings.warn(
+                "SECRET_KEY is using the insecure default value. "
+                "Set a strong SECRET_KEY environment variable before deploying."
+            )
 
         return True
 

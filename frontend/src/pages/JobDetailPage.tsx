@@ -140,7 +140,7 @@ export function JobDetailPage() {
             </p>
           ) : (
             <ul className="divide-y divide-gray-200">
-              {recData!.rankings.map((item: { rank: number; candidate: { _id: string; candidate_name?: string; candidate_email?: string }; score: number | null; reasoning?: string; tag?: string }) => (
+              {recData!.rankings.map((item: { rank: number; candidate: { _id: string; candidate_name?: string; candidate_email?: string }; score: number | null; reasoning?: string; strengths?: string[]; gaps?: string[]; decision?: string; tag?: string }) => (
                 <li key={item.rank} className="py-3 first:pt-0">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -160,10 +160,23 @@ export function JobDetailPage() {
                       {item.tag && (
                         <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{item.tag}</span>
                       )}
+                      {item.decision && (
+                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">{item.decision}</span>
+                      )}
                     </div>
                   </div>
                   {item.reasoning && (
-                    <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap line-clamp-2">{item.reasoning}</p>
+                    <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">{item.reasoning}</p>
+                  )}
+                  {(item.strengths?.length ?? 0) > 0 && (
+                    <p className="mt-1 text-xs text-green-700">
+                      <span className="font-medium">Strengths:</span> {item.strengths!.join(', ')}
+                    </p>
+                  )}
+                  {(item.gaps?.length ?? 0) > 0 && (
+                    <p className="mt-0.5 text-xs text-amber-700">
+                      <span className="font-medium">Gaps:</span> {item.gaps!.join(', ')}
+                    </p>
                   )}
                 </li>
               ))}

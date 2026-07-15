@@ -52,17 +52,9 @@ psql -v ON_ERROR_STOP=1 --username "$APP_DB_USER" --dbname "$APP_DB_NAME" <<-EOS
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
-    -- Insert default admin user (password: admin123)
-    -- Hash generated with bcrypt: admin123
-    INSERT INTO users (email, name, hashed_password, role, is_active, is_superuser)
-    VALUES (
-        'admin@hr-automation.com',
-        'System Administrator',
-        '\$2b\$12\$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU7TiX.MvHc2',
-        'ADMIN',
-        true,
-        true
-    ) ON CONFLICT (email) DO NOTHING;
+    -- NOTE: Default demo accounts (admin / HR manager / job seeker) are seeded by the
+    -- application on startup (backend/core/seed.py), which uses the app's own password
+    -- hashing so the documented credentials always work. No user rows are inserted here.
 EOSQL
 
 echo ""
@@ -71,5 +63,5 @@ echo "PostgreSQL initialization completed!"
 echo "========================================"
 echo "Database: ${APP_DB_NAME}"
 echo "User: ${APP_DB_USER}"
-echo "Default admin: admin@hr-automation.com / admin123"
+echo "Default demo accounts are created by the app on startup (see backend/core/seed.py)."
 echo ""

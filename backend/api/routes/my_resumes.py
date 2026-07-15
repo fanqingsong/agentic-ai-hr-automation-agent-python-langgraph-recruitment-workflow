@@ -2,6 +2,7 @@
 # My Resumes API (job seeker: list, detail, download, job-recommendations)
 # ============================================================================
 
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -11,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from typing import Annotated
 
-from backend.api.routes.common import json_safe, normalize_job_doc
+from backend.api.routes.common import json_safe, normalize_job_doc, fetch_docs_by_ids
 from backend.core.dependencies import get_current_active_user
 from backend.models.user import UserModel
 
@@ -50,7 +51,8 @@ def get_my_resumes_router(db: Any):
 
         from backend.services.storage import get_storage
         storage = get_storage()
-        file_bytes = storage.download_file(object_name)
+        # MinIO download is synchronous; offload to a thread.
+        file_bytes = await asyncio.to_thread(storage.download_file, object_name)
         filename = object_name.split("/")[-1] if "/" in object_name else "resume.pdf"
         if not filename.lower().endswith(".pdf"):
             filename = "resume.pdf"
@@ -103,14 +105,7 @@ def get_my_resumes_router(db: Any):
                     ]
 
             job_ids = [r.get("job_id") for r in rankings if r.get("job_id")]
-            job_map = {}
-            if job_ids:
-                for jid in job_ids:
-                    if not ObjectId.is_valid(jid):
-                        continue
-                    job_doc = await jobs_collection.find_one({"_id": ObjectId(jid)})
-                    if job_doc:
-                        job_map[jid] = job_doc
+            job_map = await fetch_docs_by_ids(jobs_collection, job_ids) if job_ids else {}
 
             items = []
             for rank, r in enumerate(rankings, start=1):
@@ -154,7 +149,10 @@ def get_my_resumes_router(db: Any):
             try:
                 from backend.services.storage import get_storage
                 storage = get_storage()
-                download_url = storage.get_file_url(object_name, expires=timedelta(hours=1))
+                # Presigned URL generation calls MinIO synchronously; offload it.
+                download_url = await asyncio.to_thread(
+                    storage.get_file_url, object_name, timedelta(hours=1)
+                )
             except Exception as e:
                 logger.warning(f"Could not generate CV download URL: {e}")
         doc["download_url"] = download_url
@@ -179,12 +177,13 @@ def get_my_resumes_router(db: Any):
             }
             cursor = candidates_collection.find(query).sort("timestamp", -1).skip(skip).limit(limit)
             raw_items = await cursor.to_list(length=limit)
+            total = await candidates_collection.count_documents(query)
 
             items = []
             for doc in raw_items:
                 out = {k: v for k, v in doc.items() if k not in MY_RESUMES_EXCLUDE}
                 items.append(json_safe(out))
-            return {"total": len(items), "resumes": items}
+            return {"total": total, "limit": limit, "skip": skip, "resumes": items}
         except Exception as e:
             logger.error(f"Error listing my resumes: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))

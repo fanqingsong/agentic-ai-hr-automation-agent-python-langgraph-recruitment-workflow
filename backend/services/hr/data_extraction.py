@@ -7,12 +7,13 @@ Extracts structured data from CV files (PDF, DOCX) by:
 """
 
 from backend.config import Config
-from backend.services.llm_provider import LLMFactory
+from backend.services.llm_provider import get_cached_llm
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+import asyncio
 import json
 import logging
 import re
@@ -154,7 +155,8 @@ async def extract_cv_data(cv_file_path: str) -> dict:
     logger.info(f"Extracting data from CV: {cv_file_path}")
 
     try:
-        text = _file_to_text(cv_file_path)
+        # Parsing PDFs/DOCX is CPU/IO-bound and synchronous; run off the event loop.
+        text = await asyncio.to_thread(_file_to_text, cv_file_path)
     except (FileNotFoundError, ValueError) as e:
         logger.error(f"CV file error: {e}")
         return _get_mock_extraction(cv_file_path)
@@ -164,7 +166,7 @@ async def extract_cv_data(cv_file_path: str) -> dict:
         return _get_mock_extraction(cv_file_path)
 
     try:
-        llm = LLMFactory.create_llm(
+        llm = get_cached_llm(
             provider=Config.LLM_PROVIDER,
             temperature=Config.EXTRACTION_TEMP,
             max_tokens=2000,

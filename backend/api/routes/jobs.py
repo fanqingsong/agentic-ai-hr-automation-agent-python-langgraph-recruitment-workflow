@@ -10,8 +10,8 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 
-from backend.api.routes.common import json_safe, normalize_job_doc, CreateJobRequest
-from backend.core.dependencies import require_manager_or_admin
+from backend.api.routes.common import json_safe, normalize_job_doc, CreateJobRequest, fetch_docs_by_ids
+from backend.core.dependencies import get_current_active_user, require_manager_or_admin
 from backend.models.user import UserModel
 from backend.utils.ulid_helper import generate_ulid
 
@@ -25,22 +25,27 @@ def get_jobs_router(db: Any):
     async def get_jobs(
         limit: int = Query(50, ge=1, le=100),
         active_only: bool = Query(False),
+        _: Annotated[UserModel, Depends(get_current_active_user)] = None,
     ):
         try:
             query = {}
             if active_only:
                 query["active"] = True
             jobs_collection = db.hr_job_posts
+            total = await jobs_collection.count_documents(query)
             cursor = jobs_collection.find(query).sort("createdAt", -1).limit(limit)
             jobs = await cursor.to_list(length=limit)
             normalized = [normalize_job_doc(j) for j in jobs]
-            return {"total": len(normalized), "jobs": normalized}
+            return {"total": total, "limit": limit, "jobs": normalized}
         except Exception as e:
             logger.error(f"Error fetching jobs: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @router.get("/jobs/{job_id}")
-    async def get_job(job_id: str):
+    async def get_job(
+        job_id: str,
+        _: Annotated[UserModel, Depends(get_current_active_user)] = None,
+    ):
         try:
             if not job_id:
                 raise HTTPException(status_code=400, detail="Job id required")
@@ -98,26 +103,27 @@ def get_jobs_router(db: Any):
             candidate_ids = [r.get("candidate_id") for r in rankings if r.get("candidate_id")]
             candidate_map = {}
             if candidate_ids:
-                for cid in candidate_ids:
-                    if not ObjectId.is_valid(cid):
-                        continue
-                    cand = await candidates_collection.find_one({"_id": ObjectId(cid)})
-                    if cand:
-                        candidate_map[cid] = {
-                            "_id": str(cand.get("_id", cid)),
-                            "candidate_name": cand.get("candidate_name", ""),
-                            "candidate_email": cand.get("candidate_email", ""),
-                            "summary": cand.get("summary", ""),
-                        }
+                raw_map = await fetch_docs_by_ids(candidates_collection, candidate_ids)
+                for cid, cand in raw_map.items():
+                    candidate_map[cid] = {
+                        "_id": str(cand.get("_id", cid)),
+                        "candidate_name": cand.get("candidate_name", ""),
+                        "candidate_email": cand.get("candidate_email", ""),
+                        "summary": cand.get("summary", ""),
+                    }
             items = []
             for rank, r in enumerate(rankings, start=1):
                 cid = r.get("candidate_id")
                 cand = candidate_map.get(cid) if cid else None
+                evaluation = r.get("evaluation") or {}
                 items.append({
                     "rank": rank,
                     "candidate": cand or {"_id": cid, "candidate_name": "Unknown", "candidate_email": "", "summary": ""},
                     "score": r.get("score"),
-                    "reasoning": (r.get("evaluation") or {}).get("reasoning"),
+                    "reasoning": evaluation.get("reasoning"),
+                    "strengths": evaluation.get("strengths", []),
+                    "gaps": evaluation.get("gaps", []),
+                    "decision": evaluation.get("decision"),
                     "tag": r.get("tag"),
                 })
             return {"total": len(items), "rankings": items}

@@ -2,6 +2,7 @@
 # AUTHENTICATION AND AUTHORIZATION DEPENDENCIES
 # ============================================================================
 
+import asyncio
 from typing import Optional, List
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -44,7 +45,8 @@ async def get_current_user(
         raise credentials_exception
 
     try:
-        user = get_user_by_email(db, email)
+        # SQLAlchemy session is synchronous; run off the event loop.
+        user = await asyncio.to_thread(get_user_by_email, db, email)
     except Exception as e:
         import logging
         logging.getLogger(__name__).exception("get_user_by_email failed: %s", e)
