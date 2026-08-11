@@ -19,6 +19,10 @@ from backend.services.hr.graph.nodes.notifications import (
     send_whatsapp_node,
 )
 from backend.services.hr.graph.nodes.persistence import save_candidate_to_mongodb
+from backend.services.hr.graph.nodes.knowledge_index import (
+    index_candidate_knowledge_node,
+    index_evaluation_edge_node,
+)
 
 __all__ = [
     "upload_cv_node",
@@ -34,4 +38,6 @@ __all__ = [
     "send_slack_notification_node",
     "send_whatsapp_node",
     "save_candidate_to_mongodb",
+    "index_candidate_knowledge_node",
+    "index_evaluation_edge_node",
 ]

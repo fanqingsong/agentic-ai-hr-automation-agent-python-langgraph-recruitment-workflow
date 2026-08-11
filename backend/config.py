@@ -87,6 +87,35 @@ class Config:
 
 
     # ========================================================================
+    # EMBEDDING CONFIGURATION (硅基流动 SiliconFlow, OpenAI 兼容 API)
+    # ========================================================================
+    # Model/base_url/dim 均可配置，便于切换硅基流动上的其他 Embedding 模型
+    # (如 BAAI/bge-m3、BAAI/bge-large-zh-v1.5、Qwen/Qwen3-Embedding-8B 等)。
+
+    EMBEDDING_PROVIDER: str = os.getenv("EMBEDDING_PROVIDER", "siliconflow")
+    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
+    EMBEDDING_API_KEY: str = os.getenv("EMBEDDING_API_KEY", "")
+    EMBEDDING_BASE_URL: str = os.getenv("EMBEDDING_BASE_URL", "https://api.siliconflow.cn/v1")
+    EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", "1024"))
+
+    # ========================================================================
+    # QDRANT CONFIGURATION (向量检索)
+    # ========================================================================
+
+    QDRANT_URL: str = os.getenv("QDRANT_URL", "http://localhost:6333")
+    QDRANT_API_KEY: str = os.getenv("QDRANT_API_KEY", "")
+    QDRANT_COLLECTION_CANDIDATES: str = os.getenv("QDRANT_COLLECTION_CANDIDATES", "candidate_chunks")
+    QDRANT_COLLECTION_JOBS: str = os.getenv("QDRANT_COLLECTION_JOBS", "job_chunks")
+
+    # ========================================================================
+    # NEO4J CONFIGURATION (知识图谱)
+    # ========================================================================
+
+    NEO4J_URI: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+    NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")
+    NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "hr_neo4j_pass")
+
+    # ========================================================================
     # SECURITY CONFIGURATION (JWT 认证)
     # ========================================================================
 

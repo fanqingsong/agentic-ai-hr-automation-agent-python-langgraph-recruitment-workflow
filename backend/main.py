@@ -2,6 +2,7 @@
 # AI HR Automation API - Modular Entry Point
 # ============================================================================
 
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -73,6 +74,20 @@ async def lifespan(app: FastAPI):
         logger.info("✅ MongoDB indexes ensured")
     except Exception as idx_err:
         logger.warning(f"⚠️  MongoDB index creation failed: {idx_err}")
+
+    try:
+        from backend.core.qdrant_client import ensure_collections as ensure_qdrant_collections
+        await ensure_qdrant_collections()
+        logger.info("✅ Qdrant collections ensured")
+    except Exception as qdrant_err:
+        logger.warning(f"⚠️  Qdrant collection setup failed: {qdrant_err}")
+
+    try:
+        from backend.core.neo4j_client import ensure_constraints as ensure_neo4j_constraints
+        await ensure_neo4j_constraints()
+        logger.info("✅ Neo4j constraints ensured")
+    except Exception as neo4j_err:
+        logger.warning(f"⚠️  Neo4j constraint setup failed: {neo4j_err}")
 
     yield
 
@@ -155,12 +170,26 @@ async def root():
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint."""
+    """Health check endpoint.
+
+    ``qdrant``/``neo4j`` are best-effort pings for the derived knowledge
+    stores; "unavailable" here does not affect ``status`` since MongoDB
+    remains the source of truth and both stores are additive.
+    """
+    from backend.core.qdrant_client import ping as ping_qdrant
+    from backend.core.neo4j_client import ping as ping_neo4j
+
+    qdrant_ok, neo4j_ok = await asyncio.gather(ping_qdrant(), ping_neo4j())
+
     return HealthResponse(
         status="healthy",
         timestamp=datetime.now().isoformat(),
         service="AI HR Automation",
-        config={"llm_provider": Config.LLM_PROVIDER},
+        config={
+            "llm_provider": Config.LLM_PROVIDER,
+            "qdrant": "ok" if qdrant_ok else "unavailable",
+            "neo4j": "ok" if neo4j_ok else "unavailable",
+        },
     )
 
 

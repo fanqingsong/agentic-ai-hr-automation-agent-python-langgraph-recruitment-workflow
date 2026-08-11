@@ -98,10 +98,19 @@ export function CandidatesPage() {
   };
 
   if (error) {
+    const err = error as { response?: { status?: number; data?: { detail?: string } } };
+    const status = err.response?.status;
+    const detail = err.response?.data?.detail;
+    const message =
+      status === 401 || status === 403
+        ? 'Failed to load candidates. You may not have permission (HR/Admin only).'
+        : detail
+          ? `Failed to load candidates: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`
+          : 'Failed to load candidates. Please try again.';
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          Failed to load candidates. You may not have permission (HR/Admin only).
+          {message}
         </div>
         <Button onClick={() => refetch()} className="mt-4">
           Retry
@@ -123,6 +132,10 @@ export function CandidatesPage() {
         <CardHeader>
           <CardTitle>Filters</CardTitle>
           <CardDescription>Filter and sort candidates. Export to CSV or Excel.</CardDescription>
+          <p className="text-xs text-gray-500 mt-1">
+            Score 和 Job 来自 AI 职位评估。未选 Job 时显示各候选人最高匹配分及对应职位；选 Job 后仅显示该职位的评估结果。
+            若为空，请先在 Jobs 详情页点击 Refresh rankings 运行评估。
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -234,8 +247,26 @@ export function CandidatesPage() {
                       <tr key={c._id} className="border-b last:border-0 hover:bg-gray-50">
                         <td className="py-3 px-4">{c.candidate_name ?? '—'}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{c.candidate_email ?? '—'}</td>
-                        <td className="py-3 px-4">{c.evaluation_score ?? '—'}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{c.job_title ?? c.job_id ?? '—'}</td>
+                        <td className="py-3 px-4">
+                          {c.evaluation_score != null ? (
+                            <span className="font-medium">{c.evaluation_score}</span>
+                          ) : (
+                            <span className="text-gray-400" title="尚未对该职位运行 AI 评估">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {c.job_title ? (
+                            c.job_id ? (
+                              <Link to={`/jobs/${c.job_id}`} className="hover:underline">
+                                {c.job_title}
+                              </Link>
+                            ) : (
+                              c.job_title
+                            )
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
                           {c.timestamp ? new Date(c.timestamp).toLocaleDateString() : '—'}
                         </td>

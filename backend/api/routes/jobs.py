@@ -188,6 +188,30 @@ def get_jobs_router(db: Any):
             inserted_id = getattr(result, "inserted_id", None)
             if inserted_id is not None:
                 doc["_id"] = str(inserted_id)
+
+            # Best-effort: extract job skills and sync into the vector/graph
+            # knowledge stores. MongoDB is already the source of truth above,
+            # so a failure here is only logged, never surfaced to the caller.
+            if inserted_id is not None:
+                try:
+                    from backend.services.hr.graph.nodes.job_skills import extract_job_skills
+                    from backend.services.knowledge import sync as knowledge_sync
+
+                    job_skills = await extract_job_skills(desc)
+                    await jobs_collection.update_one(
+                        {"_id": inserted_id},
+                        {"$set": {"job_skills": job_skills.to_dict()}},
+                    )
+                    await knowledge_sync.index_job(
+                        job_id=str(inserted_id),
+                        title=title,
+                        description=desc,
+                        tech_skills=job_skills.tech_skills,
+                        soft_skills=job_skills.soft_skills,
+                    )
+                except Exception as sync_err:
+                    logger.warning("Knowledge index skipped for job %s: %s", inserted_id, sync_err)
+
             return json_safe(doc)
         except HTTPException:
             raise

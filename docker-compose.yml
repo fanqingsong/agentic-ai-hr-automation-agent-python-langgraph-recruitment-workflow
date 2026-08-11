@@ -88,6 +88,34 @@ services:
       timeout: 5s
       retries: 5
 
+  # Qdrant 向量数据库 (语义检索)
+  qdrant:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/qdrant/qdrant:latest
+    container_name: hr-qdrant
+    ports:
+      - "6333:6333"   # REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - hr-network
+    restart: unless-stopped
+
+  # Neo4j 知识图谱数据库 (实体关系检索)
+  neo4j:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/neo4j:5-community
+    container_name: hr-neo4j
+    ports:
+      - "7474:7474"   # Browser (Web UI)
+      - "7687:7687"   # Bolt protocol
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-hr_neo4j_pass}
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - hr-network
+    restart: unless-stopped
+
   # HR Automation API (development: single worker + --reload for hot reload)
   # 入口已改为 backend.main:app（勿改回 backend.fastapi_api，该模块已删除）
   hr-automation:
@@ -102,6 +130,10 @@ services:
       - MONGODB_URL=mongodb://mongodb:27017
       - POSTGRES_SERVER=postgres:5432
       - MINIO_ENDPOINT=minio:9000
+      - QDRANT_URL=http://qdrant:6333
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-hr_neo4j_pass}
       # 应用绑定
       - HOST=0.0.0.0
       - PORT=8000
@@ -119,6 +151,8 @@ services:
       - minio
       - mongodb
       - postgres
+      - qdrant
+      - neo4j
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -166,6 +200,10 @@ volumes:
   mongodb_data:
     driver: local
   postgres_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  neo4j_data:
     driver: local
 
 networks:

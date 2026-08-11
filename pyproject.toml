@@ -50,6 +50,9 @@ dependencies = [
     "psycopg2-binary>=2.9.9",  # PostgreSQL adapter
     "alembic>=1.13.0",  # Database migration
     "email-validator>=2.3.0",  # Email validation
+    # Knowledge stores: vector search + knowledge graph (v1.4.0)
+    "qdrant-client>=1.12.0",  # Qdrant vector database client (async)
+    "neo4j>=5.26.0",  # Neo4j graph database driver (async)
 ]
 
 [build-system]

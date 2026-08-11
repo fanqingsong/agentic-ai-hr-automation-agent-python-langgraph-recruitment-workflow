@@ -289,7 +289,11 @@ docker-compose.yml       # MinIO, MongoDB, Mongo Express, Postgres, hr-automatio
 
 ## 📚 Documentation
 
-See **DOCUMENTATION.md** (if present) for step-by-step setup and configuration.
+- [Candidate data extraction and job matching](docs/CANDIDATE_DATA_AND_JOB_MATCHING.md) — current extraction schemas, storage model, scoring behavior, and implementation limitations.
+- [Knowledge stores: MongoDB + Qdrant + Neo4j](docs/KNOWLEDGE_STORES.md) — vector search and knowledge graph infrastructure, sync pipeline, and backfill script.
+- [Technical framework](TECHNICAL_FRAMEWORK.md) — broader system architecture.
+- [Azure OpenAI setup](docs/AZURE_OPENAI_SETUP.md)
+- [MinIO setup](docs/MINIO_SETUP.md)
 
 ## Why uv package manager for Python3 projects
 

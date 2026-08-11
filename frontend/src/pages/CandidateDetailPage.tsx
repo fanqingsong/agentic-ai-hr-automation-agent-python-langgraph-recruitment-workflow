@@ -2,6 +2,7 @@
  * Candidate detail page (HR): view one candidate's resume data and AI evaluation
  */
 
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { candidatesAPI } from '@/lib/api';
@@ -10,6 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export function CandidateDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [fileAvailable, setFileAvailable] = useState<boolean | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['candidate', id],
@@ -19,6 +25,32 @@ export function CandidateDetailPage() {
     },
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (!id || !data) return;
+    let cancelled = false;
+    setFileAvailable(null);
+    candidatesAPI.downloadBlob(id)
+      .then((res) => {
+        if (cancelled) return;
+        const url = URL.createObjectURL(res.data as Blob);
+        if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = url;
+        setBlobUrl(url);
+        setFileAvailable(true);
+      })
+      .catch(() => {
+        if (!cancelled) setFileAvailable(false);
+      });
+    return () => {
+      cancelled = true;
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+      setBlobUrl(null);
+    };
+  }, [id, data]);
 
   if (!id) {
     return (
@@ -56,6 +88,31 @@ export function CandidateDetailPage() {
   const skillsMatch = data.skills_match as { strong?: string[]; partial?: string[]; missing?: string[] } | undefined;
   const score = data.evaluation_score ?? evaluation?.score;
 
+  const handleDownload = async () => {
+    if (!id) return;
+    setDownloadError(null);
+    try {
+      const res = await candidatesAPI.downloadBlob(id);
+      const blob = res.data as Blob;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resume-${data.candidate_name?.replace(/\s+/g, '_') || id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: string }; status?: number } };
+      setDownloadError(err.response?.data?.detail ?? 'Download failed.');
+    }
+  };
+
+  const handlePreview = () => {
+    if (blobUrl) window.open(blobUrl, '_blank', 'noopener,noreferrer');
+    else setPreviewError('Preview not loaded. Try again.');
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6 flex items-center justify-between">
@@ -74,7 +131,7 @@ export function CandidateDetailPage() {
             {data.timestamp && ` · ${new Date(data.timestamp).toLocaleDateString()}`}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-4">
           {score != null && (
             <p className="text-lg font-medium">
               Evaluation score: <span className="text-primary">{score}</span> / 100
@@ -83,8 +140,50 @@ export function CandidateDetailPage() {
           {evaluation?.decision && (
             <p className="text-sm text-gray-600">Decision: {evaluation.decision}</p>
           )}
+          <div className="pt-2 space-y-3">
+            {fileAvailable === null && (
+              <p className="text-sm text-gray-500">Checking if CV file is available...</p>
+            )}
+            {fileAvailable === true && (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="default" onClick={handlePreview} title="在新标签页中预览">
+                    Preview CV
+                  </Button>
+                  <Button variant="outline" onClick={handleDownload} title="下载简历文件">
+                    Download CV
+                  </Button>
+                </div>
+                {previewError && <p className="text-sm text-red-600">{previewError}</p>}
+                {downloadError && <p className="text-sm text-red-600">{downloadError}</p>}
+              </>
+            )}
+            {fileAvailable === false && (
+              <p className="text-sm text-gray-500">
+                原始简历文件不可用。可能是较早导入的记录，当时尚未启用文件存储。
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
+
+      {fileAvailable === true && blobUrl && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">原始简历</CardTitle>
+            <CardDescription>候选人上传的 CV 文件（PDF 内嵌预览）</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border bg-gray-100 overflow-hidden">
+              <iframe
+                src={blobUrl}
+                title="CV Preview"
+                className="w-full h-[min(80vh,720px)] min-h-[480px]"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {data.summary && (
         <Card className="mb-6">

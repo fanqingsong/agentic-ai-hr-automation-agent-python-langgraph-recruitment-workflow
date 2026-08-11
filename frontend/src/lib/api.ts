@@ -103,6 +103,8 @@ export const jobsAPI = {
 export const candidatesAPI = {
   list: (params?: any) => api.get('/api/candidates', { params }),
   get: (id: string) => api.get(`/api/candidates/${id}`),
+  /** Fetch candidate CV as blob (HR preview/download with auth). */
+  downloadBlob: (id: string) => api.get(`/api/candidates/${id}/download`, { responseType: 'blob' }),
   /** Export candidates. Pass FormData with optional job_id, format (csv|xlsx), min_score, max_score. */
   export: (formData: FormData) =>
     api.post('/api/export/candidates', formData, { responseType: 'blob' }),
