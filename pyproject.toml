@@ -38,21 +38,24 @@ dependencies = [
     "requests>=2.32.5",
     "uvicorn[standard]>=0.40.0",
     # New features dependencies (v1.1.0)
-    "xlsxwriter>=3.0.0",  # Excel export functionality
+    "xlsxwriter>=3.0.0", # Excel export functionality
     # MinIO Storage dependencies (v1.2.0)
-    "minio>=7.0.0",  # MinIO object storage client
+    "minio>=7.0.0", # MinIO object storage client
     # Authentication and Authorization dependencies (v1.3.0)
-    "python-jose[cryptography]>=3.3.0",  # JWT token creation and validation
-    "passlib>=1.7.4",  # Password hashing (removed [bcrypt] extra)
-    "bcrypt>=4.0.0",  # Bcrypt password hashing algorithm
-    "python-multipart>=0.0.21",  # Form data parsing
-    "sqlalchemy>=2.0.0",  # SQL toolkit
-    "psycopg2-binary>=2.9.9",  # PostgreSQL adapter
-    "alembic>=1.13.0",  # Database migration
-    "email-validator>=2.3.0",  # Email validation
+    "python-jose[cryptography]>=3.3.0", # JWT token creation and validation
+    "passlib>=1.7.4", # Password hashing (removed [bcrypt] extra)
+    "bcrypt>=4.0.0", # Bcrypt password hashing algorithm
+    "python-multipart>=0.0.21", # Form data parsing
+    "sqlalchemy>=2.0.0", # SQL toolkit
+    "psycopg2-binary>=2.9.9", # PostgreSQL adapter
+    "alembic>=1.13.0", # Database migration
+    "email-validator>=2.3.0", # Email validation
     # Knowledge stores: vector search + knowledge graph (v1.4.0)
-    "qdrant-client>=1.12.0",  # Qdrant vector database client (async)
-    "neo4j>=5.26.0",  # Neo4j graph database driver (async)
+    "qdrant-client>=1.12.0", # Qdrant vector database client (async)
+    "neo4j>=5.26.0", # Neo4j graph database driver (async)
+    "deepagents>=0.7",
+    "copilotkit>=0.1.94",
+    "ag-ui-langgraph>=0.0.42",
 ]
 
 [build-system]

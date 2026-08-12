@@ -291,6 +291,7 @@ docker-compose.yml       # MinIO, MongoDB, Mongo Express, Postgres, hr-automatio
 
 - [Candidate data extraction and job matching](docs/CANDIDATE_DATA_AND_JOB_MATCHING.md) — current extraction schemas, storage model, scoring behavior, and implementation limitations.
 - [Knowledge stores: MongoDB + Qdrant + Neo4j](docs/KNOWLEDGE_STORES.md) — vector search and knowledge graph infrastructure, sync pipeline, and backfill script.
+- [HR Explorer Agent](docs/HR_EXPLORER_AGENT.md) — read-only DeepAgents + CopilotSidebar exploration over MongoDB, Qdrant, and Neo4j.
 - [Technical framework](TECHNICAL_FRAMEWORK.md) — broader system architecture.
 - [Azure OpenAI setup](docs/AZURE_OPENAI_SETUP.md)
 - [MinIO setup](docs/MINIO_SETUP.md)

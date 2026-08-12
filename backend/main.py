@@ -154,6 +154,100 @@ app.include_router(auth_router)
 db = get_mongo_db()
 register_dashboard_routes(app, db)
 
+# DeepAgents HR explorer via CopilotKit multi-route runtime (+ AG-UI runs).
+# Graph compile is deferred so /auth and /health come up without waiting.
+_hr_explorer_agent_status = "unavailable"
+try:
+    from functools import lru_cache
+
+    from copilotkit import LangGraphAGUIAgent
+    from backend.services.agent.copilot_runtime import (
+        HR_EXPLORER_DESCRIPTION,
+        HR_EXPLORER_NAME,
+        mount_copilotkit_runtime,
+    )
+
+    @lru_cache(maxsize=1)
+    def _get_hr_explorer_agui_agent() -> LangGraphAGUIAgent:
+        from backend.services.agent.hr_explorer_agent import get_hr_explorer_agent
+
+        return LangGraphAGUIAgent(
+            name=HR_EXPLORER_NAME,
+            description=HR_EXPLORER_DESCRIPTION,
+            graph=get_hr_explorer_agent(),
+        )
+
+    mount_copilotkit_runtime(
+        app,
+        get_agent=_get_hr_explorer_agui_agent,
+        agent_name=HR_EXPLORER_NAME,
+        agent_description=HR_EXPLORER_DESCRIPTION,
+        path="/api/copilotkit",
+    )
+    _hr_explorer_agent_status = "configured"
+    logger.info("✅ CopilotKit runtime mounted at /api/copilotkit (lazy agent)")
+except Exception as agent_err:
+    logger.warning("⚠️  HR explorer agent endpoint not mounted: %s", agent_err)
+
+
+@app.middleware("http")
+async def protect_copilotkit(request: Request, call_next):
+    """Require Bearer JWT + hr_manager/admin for /api/copilotkit.
+
+    AG-UI is mounted by a third-party helper without FastAPI Depends hooks,
+    so auth is enforced here at the HTTP middleware layer.
+    """
+    path = request.url.path
+    if path.startswith("/api/copilotkit") and request.method not in ("OPTIONS", "HEAD"):
+        auth = request.headers.get("authorization") or ""
+        if not auth.lower().startswith("bearer "):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Not authenticated"},
+                headers={"WWW-Authenticate": "Bearer", **_cors_error_headers(request)},
+            )
+        token = auth.split(" ", 1)[1].strip()
+        try:
+            from backend.core.database import SessionLocal
+            from backend.core.dependencies import get_current_user
+            from backend.schemas.auth import UserRole
+
+            db_session = SessionLocal()
+            try:
+                user = await get_current_user(token=token, db=db_session)
+                if not user.is_active:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "Inactive user"},
+                        headers=_cors_error_headers(request),
+                    )
+                role = getattr(user, "role", None)
+                role_value = role.value if hasattr(role, "value") else role
+                allowed = {UserRole.HR_MANAGER.value, UserRole.ADMIN.value}
+                if role_value not in allowed:
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "Access denied. HR manager or admin required."},
+                        headers=_cors_error_headers(request),
+                    )
+            finally:
+                db_session.close()
+        except HTTPException as http_exc:
+            return JSONResponse(
+                status_code=http_exc.status_code,
+                content={"detail": http_exc.detail},
+                headers=_cors_error_headers(request),
+            )
+        except Exception as auth_err:
+            logger.warning("CopilotKit auth failed: %s", auth_err)
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Could not validate credentials"},
+                headers={"WWW-Authenticate": "Bearer", **_cors_error_headers(request)},
+            )
+
+    return await call_next(request)
+
 
 @app.get("/", response_model=Dict[str, str])
 async def root():
@@ -189,6 +283,7 @@ async def health_check():
             "llm_provider": Config.LLM_PROVIDER,
             "qdrant": "ok" if qdrant_ok else "unavailable",
             "neo4j": "ok" if neo4j_ok else "unavailable",
+            "agent": _hr_explorer_agent_status,
         },
     )
 

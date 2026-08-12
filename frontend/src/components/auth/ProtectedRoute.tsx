@@ -5,9 +5,10 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Layout } from '@/components/layout/Layout';
+import { HrCopilotProvider } from '@/components/copilot/HrCopilot';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
 
   // Show loading only while actively fetching
   if (isLoading) {
@@ -23,5 +24,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return <Layout>{children}</Layout>;
+  return (
+    <HrCopilotProvider>
+      <Layout>{children}</Layout>
+    </HrCopilotProvider>
+  );
 }

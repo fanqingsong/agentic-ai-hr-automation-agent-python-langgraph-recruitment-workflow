@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { jobsAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopilotPageContext } from '@/components/copilot/HrCopilot';
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -84,6 +85,15 @@ export function JobDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <CopilotPageContext
+        description="Currently viewed job detail page"
+        value={{
+          page: 'job_detail',
+          job_id: id,
+          job_title: data?.job_title,
+          hr_email: data?.hr_email,
+        }}
+      />
       <div className="mb-6">
         <Button variant="outline" size="sm" asChild>
           <Link to="/jobs">Back to Jobs</Link>

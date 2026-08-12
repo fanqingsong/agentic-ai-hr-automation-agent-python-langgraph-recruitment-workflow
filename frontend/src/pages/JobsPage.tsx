@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CopilotPageContext } from '@/components/copilot/HrCopilot';
 
 interface Job {
   _id: string;
@@ -95,6 +96,15 @@ export function JobsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <CopilotPageContext
+        description="Jobs list page currently open"
+        value={{
+          page: 'jobs',
+          total: data?.total ?? 0,
+          job_ids: (data?.jobs ?? []).slice(0, 20).map((j) => j._id),
+          job_titles: (data?.jobs ?? []).slice(0, 10).map((j) => j.job_title),
+        }}
+      />
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Available Jobs</h1>

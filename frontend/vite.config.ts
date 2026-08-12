@@ -30,7 +30,7 @@ export default defineConfig({
         // In Docker Compose, set VITE_API_PROXY_TARGET=http://hr-automation:8000
         target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000',
         changeOrigin: true,
-        // Batch CV import holds the connection open while LLM extraction runs.
+        // Batch CV import and CopilotKit AG-UI streams hold the connection open.
         timeout: 7_200_000,
         proxyTimeout: 7_200_000,
       },

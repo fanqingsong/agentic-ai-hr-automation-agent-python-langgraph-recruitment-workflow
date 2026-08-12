@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { CopilotPageContext } from '@/components/copilot/HrCopilot';
 
 const PAGE_SIZE = 20;
 
@@ -121,6 +122,16 @@ export function CandidatesPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <CopilotPageContext
+        description="Current candidates list filters and visible results"
+        value={{
+          page: 'candidates',
+          filters: { jobId, minScore, maxScore, sortBy, sortOrder, page },
+          total,
+          visible_candidate_ids: candidates.slice(0, 20).map((c) => c._id),
+          visible_names: candidates.slice(0, 10).map((c) => c.candidate_name),
+        }}
+      />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Candidates</h1>
