@@ -18,6 +18,7 @@ const CandidatesPage = lazy(() => import('@/pages/CandidatesPage').then(m => ({ 
 const CandidateDetailPage = lazy(() => import('@/pages/CandidateDetailPage').then(m => ({ default: () => <m.CandidateDetailPage /> })));
 const BatchPage = lazy(() => import('@/pages/BatchPage').then(m => ({ default: () => <m.BatchPage /> })));
 const JobDetailPage = lazy(() => import('@/pages/JobDetailPage').then(m => ({ default: () => <m.JobDetailPage /> })));
+const AgentEvaluationsPage = lazy(() => import('@/pages/AgentEvaluationsPage').then(m => ({ default: () => <m.AgentEvaluationsPage /> })));
 
 // Loading component
 function Loading() {
@@ -136,6 +137,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <BatchPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'agent-evaluations',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <AgentEvaluationsPage />
           </Suspense>
         ),
       },

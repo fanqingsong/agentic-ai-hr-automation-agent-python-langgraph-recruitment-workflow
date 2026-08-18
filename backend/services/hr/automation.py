@@ -2,9 +2,10 @@
 # AI-Powered HR Automation – entrypoints (graph and nodes live in graph/ and nodes/)
 # ============================================================================
 
+import logging
 from datetime import datetime
 from functools import lru_cache
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from backend.schemas.hr import JobSkills
 from backend.services.hr.graph import (
@@ -13,6 +14,41 @@ from backend.services.hr.graph import (
 )
 from backend.services.hr.graph.nodes.job_skills import extract_job_skills
 
+logger = logging.getLogger(__name__)
+
+
+async def _traced_ainvoke(
+    app: Any,
+    initial_state: Dict[str, Any],
+    *,
+    trace_name: str,
+    session_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+    tags: Optional[list] = None,
+) -> Dict[str, Any]:
+    """Invoke a graph with Langfuse tracing and online heuristic evaluation.
+
+    When tracing is disabled (no keys configured) this is a plain
+    ``app.ainvoke``. Failures in tracing/evaluation never affect the workflow.
+    """
+    from backend.core.langfuse_client import get_trace_id, make_trace_config
+    from backend.services.evaluation.runner import evaluate_state
+
+    config = make_trace_config(
+        trace_name, user_id=user_id, session_id=session_id, tags=tags
+    )
+    if config is None:
+        return await app.ainvoke(initial_state)
+
+    final_state = await app.ainvoke(initial_state, config=config)
+
+    # Best-effort online scoring of the just-created trace.
+    try:
+        await evaluate_state(trace_name, final_state, get_trace_id(config))
+    except Exception as e:
+        logger.warning("Online evaluation for '%s' failed: %s", trace_name, e)
+
+    return final_state
 
 @lru_cache(maxsize=1)
 def _cv_extraction_app():
@@ -84,7 +120,14 @@ async def process_cv_upload(
         initial_state["user_email"] = user_email
 
     app = _cv_extraction_app()
-    final_state = await app.ainvoke(initial_state)
+    final_state = await _traced_ainvoke(
+        app,
+        initial_state,
+        trace_name="cv-extraction",
+        session_id=f"candidate:{candidate_data.get('email') or candidate_data.get('name') or 'unknown'}",
+        user_id=user_email or user_id,
+        tags=["graph1", "cv"],
+    )
     return final_state
 
 
@@ -137,7 +180,13 @@ async def evaluate_job_against_candidate(
     if job_skills is not None:
         initial_state["job_skills"] = job_skills
     app = _job_evaluation_app()
-    return await app.ainvoke(initial_state)
+    return await _traced_ainvoke(
+        app,
+        initial_state,
+        trace_name="job-evaluation",
+        session_id=f"job:{initial_state.get('job_id', 'unknown')}",
+        tags=["graph2", "evaluation"],
+    )
 
 
 async def evaluate_job_against_all_candidates(

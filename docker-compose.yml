@@ -117,6 +117,174 @@ services:
       - hr-network
     restart: unless-stopped
 
+  # ============================================================================
+  # Langfuse v4 self-hosted observability (https://langfuse.com/self-hosting)
+  # web + worker + 4 storage components (postgres/clickhouse/redis/minio).
+  # Traces LLM calls / LangGraph runs; scores are written by the evaluation
+  # module. All storage ports are bound to localhost only.
+  # ============================================================================
+
+  langfuse-worker:
+    image: docker.io/langfuse/langfuse-worker:4
+    container_name: langfuse-worker
+    restart: unless-stopped
+    depends_on: &langfuse-depends-on
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3030:3030"
+    environment: &langfuse-env
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      DATABASE_URL: postgresql://postgres:${LANGFUSE_POSTGRES_PASSWORD:-langfuse_postgres_pass}@langfuse-postgres:5432/postgres
+      SALT: ${LANGFUSE_SALT:-langfuse_salt_change_me}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      TELEMETRY_ENABLED: ${LANGFUSE_TELEMETRY_ENABLED:-false}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: ${LANGFUSE_CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${LANGFUSE_MINIO_ROOT_USER:-langfuse}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_ROOT_PASSWORD:-langfuse_minio_secret}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${LANGFUSE_MINIO_ROOT_USER:-langfuse}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_ROOT_PASSWORD:-langfuse_minio_secret}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      LANGFUSE_S3_BATCH_EXPORT_ENABLED: "false"
+      REDIS_HOST: langfuse-redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: ${LANGFUSE_REDIS_AUTH:-langfuse_redis_secret}
+    networks:
+      - hr-network
+
+  langfuse-web:
+    image: docker.io/langfuse/langfuse:4
+    container_name: langfuse-web
+    restart: unless-stopped
+    depends_on: *langfuse-depends-on
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-langfuse_nextauth_secret}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://localhost:9090
+      # Auto-provision org/project/user + API keys so the backend works zero-config.
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-hr-automation-org}
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-HR Automation}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-hr-automation}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-HR Automation}
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-hr-automation}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-hr-automation}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-hr-admin@hr.local}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-HR Admin}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-LangfuseAdmin123!}
+    networks:
+      - hr-network
+
+  langfuse-postgres:
+    image: docker.io/library/postgres:17
+    container_name: langfuse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LANGFUSE_POSTGRES_PASSWORD:-langfuse_postgres_pass}
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - langfuse_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - hr-network
+
+  langfuse-clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:25.12
+    container_name: langfuse-clickhouse
+    restart: unless-stopped
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: ${LANGFUSE_CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:-clickhouse}
+      TZ: UTC
+    ports:
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9002:9000"
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+    networks:
+      - hr-network
+
+  langfuse-redis:
+    image: docker.io/library/redis:7
+    container_name: langfuse-redis
+    restart: unless-stopped
+    command: >
+      --requirepass ${LANGFUSE_REDIS_AUTH:-langfuse_redis_secret}
+      --maxmemory-policy noeviction
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - langfuse_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+    networks:
+      - hr-network
+
+  langfuse-minio:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/minio/minio:latest
+    container_name: langfuse-minio
+    restart: unless-stopped
+    entrypoint: sh
+    # create the 'langfuse' bucket before starting the service
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: ${LANGFUSE_MINIO_ROOT_USER:-langfuse}
+      MINIO_ROOT_PASSWORD: ${LANGFUSE_MINIO_ROOT_PASSWORD:-langfuse_minio_secret}
+    ports:
+      - "127.0.0.1:9090:9000"
+      - "127.0.0.1:9091:9001"
+    volumes:
+      - langfuse_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+    networks:
+      - hr-network
+
   # HR Automation API (development: single worker + --reload for hot reload)
   # 入口已改为 backend.main:app（勿改回 backend.fastapi_api，该模块已删除）
   hr-automation:
@@ -135,6 +303,8 @@ services:
       - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=${NEO4J_USER:-neo4j}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD:-hr_neo4j_pass}
+      # Langfuse (in-container service name overrides localhost default in .env)
+      - LANGFUSE_HOST=http://langfuse-web:3000
       # 应用绑定
       - HOST=0.0.0.0
       - PORT=8000
@@ -154,6 +324,7 @@ services:
       - postgres
       - qdrant
       - neo4j
+      - langfuse-web
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -205,6 +376,16 @@ volumes:
   qdrant_data:
     driver: local
   neo4j_data:
+    driver: local
+  langfuse_postgres_data:
+    driver: local
+  langfuse_clickhouse_data:
+    driver: local
+  langfuse_clickhouse_logs:
+    driver: local
+  langfuse_minio_data:
+    driver: local
+  langfuse_redis_data:
     driver: local
 
 networks:

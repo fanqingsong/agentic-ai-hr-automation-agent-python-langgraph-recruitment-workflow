@@ -171,4 +171,50 @@ export const myResumesAPI = {
     ),
 };
 
+// Agent Evaluations API (Langfuse observability: traces + evaluation runs)
+export const agentEvaluationsAPI = {
+  getStatus: () =>
+    api.get<{
+      langfuse_enabled: boolean;
+      langfuse_reachable: boolean;
+      langfuse_host: string | null;
+      llm_judge_default: boolean;
+      trace_evaluators: Record<string, string[]>;
+    }>('/api/agent-evaluations/status'),
+  getTraces: (params?: { limit?: number; name?: string }) =>
+    api.get<{
+      success: boolean;
+      count: number;
+      traces: {
+        id: string;
+        name: string | null;
+        timestamp: string | null;
+        user_id: string | null;
+        session_id: string | null;
+        latency: number | null;
+        total_cost: number | null;
+        tags: string[];
+        scores: { name: string | null; value: number | null; comment?: string | null }[];
+      }[];
+    }>('/api/agent-evaluations/traces', { params }),
+  run: (data: { limit?: number; trace_name?: string | null; use_llm_judge?: boolean }) =>
+    api.post<{
+      success: boolean;
+      fetched: number;
+      evaluated: number;
+      skipped: number;
+      llm_judged: number;
+      scores_written: number;
+      use_llm_judge: boolean;
+      filter_trace_name: string | null;
+      traces: {
+        trace_id: string | null;
+        trace_name: string;
+        timestamp: string | null;
+        scores: { name: string; value: number; comment: string }[];
+        skipped_reason: string | null;
+      }[];
+    }>('/api/agent-evaluations/run', data, { timeout: 300_000 }),
+};
+
 export default api;

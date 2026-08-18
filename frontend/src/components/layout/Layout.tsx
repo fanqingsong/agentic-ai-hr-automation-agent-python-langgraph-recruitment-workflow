@@ -51,6 +51,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <Link to="/batch" className="text-gray-700 hover:text-primary">
                     Batch
                   </Link>
+                  <Link to="/agent-evaluations" className="text-gray-700 hover:text-primary">
+                    Agent Evals
+                  </Link>
                 </>
               )}
 
@@ -70,6 +73,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                   <Link to="/batch" className="text-gray-700 hover:text-primary">
                     Batch
+                  </Link>
+                  <Link to="/agent-evaluations" className="text-gray-700 hover:text-primary">
+                    Agent Evals
                   </Link>
                   <Link to="/resumes" className="text-gray-700 hover:text-primary">
                     My Resumes

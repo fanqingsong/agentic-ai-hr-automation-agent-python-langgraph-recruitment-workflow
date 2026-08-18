@@ -40,6 +40,8 @@ By AICampus - Agentic AI Research Community
 *   🚀 High-performance FastAPI with async support
 *   ⭐ Data Analytics with web-based HR Dashaboard support for management and visualization
 *   ⭐ Real-time notifications for HR teams
+*   🔍 Self-hosted Langfuse v4 observability: LLM/LangGraph tracing for CV extraction, job evaluation, and the HR explorer agent (see [docs/LANGFUSE_INTEGRATION.md](docs/LANGFUSE_INTEGRATION.md))
+*   🧪 Agent evaluation: automatic heuristic scores (extraction completeness, evaluation plausibility, skills coverage…) + optional LLM-as-judge, with batch replay API `/api/agent-evaluations/*` and an "Agent Evals" UI page
 
 ![Agentic AI HR Automation](https://github.com/user-attachments/assets/93257061-8520-4853-8991-0501a3146e64)  
  
@@ -292,6 +294,7 @@ docker-compose.yml       # MinIO, MongoDB, Mongo Express, Postgres, hr-automatio
 - [Candidate data extraction and job matching](docs/CANDIDATE_DATA_AND_JOB_MATCHING.md) — current extraction schemas, storage model, scoring behavior, and implementation limitations.
 - [Knowledge stores: MongoDB + Qdrant + Neo4j](docs/KNOWLEDGE_STORES.md) — vector search and knowledge graph infrastructure, sync pipeline, and backfill script.
 - [HR Explorer Agent](docs/HR_EXPLORER_AGENT.md) — read-only DeepAgents + CopilotSidebar exploration over MongoDB, Qdrant, and Neo4j.
+- [Langfuse integration & agent evaluation](docs/LANGFUSE_INTEGRATION.md) — self-hosted observability stack, workflow/agent tracing, heuristic + LLM-as-judge evaluators.
 - [Technical framework](TECHNICAL_FRAMEWORK.md) — broader system architecture.
 - [Azure OpenAI setup](docs/AZURE_OPENAI_SETUP.md)
 - [MinIO setup](docs/MINIO_SETUP.md)

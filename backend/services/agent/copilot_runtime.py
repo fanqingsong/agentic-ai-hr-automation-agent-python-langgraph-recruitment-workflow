@@ -37,10 +37,52 @@ HR_EXPLORER_DESCRIPTION = (
 GetAgent = Callable[[], LangGraphAGUIAgent]
 
 
+def _current_user_email(request: Request) -> Optional[str]:
+    """Best-effort user extraction for trace metadata.
+
+    The HTTP middleware has already verified the Bearer JWT before the agent
+    runs; here we only decode it again to label the Langfuse trace.
+    """
+    auth = request.headers.get("authorization") or ""
+    if not auth.lower().startswith("bearer "):
+        return None
+    try:
+        from backend.services.security import decode_access_token
+
+        payload = decode_access_token(auth.split(" ", 1)[1].strip())
+        return (payload or {}).get("sub") or None
+    except Exception:
+        return None
+
+
 def _sse_response(agent: LangGraphAGUIAgent, input_data: RunAgentInput, request: Request):
     accept_header = request.headers.get("accept")
     encoder = EventEncoder(accept=accept_header)
     request_agent = agent.clone()
+
+    # Langfuse tracing: one trace per agent run, session = AG-UI thread.
+    # The cloned agent's config is copied per request by LangGraphAgent.run
+    # (ensure_config(self.config.copy())), so injecting callbacks here is safe
+    # for concurrent runs.
+    try:
+        from backend.core.langfuse_client import make_trace_config
+
+        trace_config = make_trace_config(
+            "hr_explorer",
+            user_id=_current_user_email(request),
+            session_id=input_data.thread_id or None,
+            tags=["agent", "hr_explorer"],
+        )
+        if trace_config:
+            base_config = dict(request_agent.config or {})
+            merged = {
+                **base_config,
+                "callbacks": (base_config.get("callbacks") or []) + (trace_config["callbacks"] or []),
+                "metadata": {**(base_config.get("metadata") or {}), **(trace_config.get("metadata") or {})},
+            }
+            request_agent.config = merged
+    except Exception as trace_err:
+        logger.debug("Langfuse tracing unavailable for agent run: %s", trace_err)
 
     async def event_generator():
         async for event in request_agent.run(input_data):

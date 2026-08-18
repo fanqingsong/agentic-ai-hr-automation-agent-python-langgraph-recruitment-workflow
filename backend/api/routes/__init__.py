@@ -4,6 +4,7 @@
 
 import logging
 
+from backend.api.routes.agent_evaluations import get_agent_evaluations_router
 from backend.api.routes.batch import get_batch_router
 from backend.api.routes.candidates import get_candidates_router
 from backend.api.routes.cv import get_cv_router
@@ -27,4 +28,5 @@ def register_dashboard_routes(app, db):
     app.include_router(get_jobs_router(db), prefix="/api")
     app.include_router(get_export_router(db), prefix="/api")
     app.include_router(get_batch_router(db), prefix="/api")
+    app.include_router(get_agent_evaluations_router(db), prefix="/api")
     logger.info("✅ Dashboard API routes registered successfully")

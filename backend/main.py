@@ -272,8 +272,11 @@ async def health_check():
     """
     from backend.core.qdrant_client import ping as ping_qdrant
     from backend.core.neo4j_client import ping as ping_neo4j
+    from backend.core.langfuse_client import is_langfuse_enabled, ping as ping_langfuse
 
-    qdrant_ok, neo4j_ok = await asyncio.gather(ping_qdrant(), ping_neo4j())
+    qdrant_ok, neo4j_ok, langfuse_ok = await asyncio.gather(
+        ping_qdrant(), ping_neo4j(), ping_langfuse()
+    )
 
     return HealthResponse(
         status="healthy",
@@ -283,6 +286,11 @@ async def health_check():
             "llm_provider": Config.LLM_PROVIDER,
             "qdrant": "ok" if qdrant_ok else "unavailable",
             "neo4j": "ok" if neo4j_ok else "unavailable",
+            "langfuse": (
+                ("ok" if langfuse_ok else "unreachable")
+                if is_langfuse_enabled()
+                else "disabled"
+            ),
             "agent": _hr_explorer_agent_status,
         },
     )

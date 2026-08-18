@@ -116,6 +116,26 @@ class Config:
     NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "hr_neo4j_pass")
 
     # ========================================================================
+    # LANGFUSE OBSERVABILITY CONFIGURATION (自托管 v4, 见 docs/LANGFUSE_INTEGRATION.md)
+    # ========================================================================
+
+    LANGFUSE_ENABLED: bool = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
+    LANGFUSE_PUBLIC_KEY: str = os.getenv("LANGFUSE_PUBLIC_KEY", "")
+    LANGFUSE_SECRET_KEY: str = os.getenv("LANGFUSE_SECRET_KEY", "")
+    # localhost when backend runs on host; docker-compose overrides to http://langfuse-web:3000
+    LANGFUSE_HOST: str = os.getenv("LANGFUSE_HOST", "http://localhost:3000")
+    # LLM-as-judge evaluator (extra LLM cost per evaluation; default off)
+    LANGFUSE_LLM_JUDGE_ENABLED: bool = (
+        os.getenv("LANGFUSE_LLM_JUDGE_ENABLED", "false").lower() == "true"
+    )
+
+    @classmethod
+    def is_langfuse_configured(cls) -> bool:
+        """True when tracing can be enabled (toggle on + both API keys set)."""
+        return cls.LANGFUSE_ENABLED and bool(cls.LANGFUSE_PUBLIC_KEY and cls.LANGFUSE_SECRET_KEY)
+
+
+    # ========================================================================
     # SECURITY CONFIGURATION (JWT 认证)
     # ========================================================================
 
