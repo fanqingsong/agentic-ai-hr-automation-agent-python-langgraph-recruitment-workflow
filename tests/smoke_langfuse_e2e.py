@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langchain_core.runnables import RunnableLambda
 
 from backend.core.langfuse_client import (
+    fetch_scores_for_traces,
     fetch_traces,
     get_trace_id,
     make_trace_config,
@@ -47,17 +48,23 @@ async def main() -> int:
     if not trace_id:
         return 1
 
-    # Wait briefly for async ingestion, then verify the trace is queryable.
-    await asyncio.sleep(4)
-    traces = await fetch_traces(limit=5, name="cv-extraction")
-    found = next((t for t in traces if t.get("id") == trace_id), None)
-    print(f"4. REST fetch_traces found our trace: {'OK' if found else 'FAIL'}")
+    # Async ingestion (worker -> ClickHouse) takes a few seconds; retry briefly.
+    found = None
+    traces = []
+    for _ in range(6):
+        await asyncio.sleep(4)
+        traces = await fetch_traces(limit=5, name="cv-extraction")
+        found = next((t for t in traces if t.get("trace_id") == trace_id), None)
+        if found:
+            break
+    print(f"4. fetch_traces (Observations API v2) found our run: {'OK' if found else 'FAIL'}")
     if not found:
+        print("   available:", [(t.get("name"), t.get("trace_id")) for t in traces])
         return 1
 
     print(
-        f"   name={found.get('name')} session={found.get('sessionId')} "
-        f"tags={found.get('tags')} user={found.get('userId')}"
+        f"   name={found.get('name')} session={found.get('session_id')} "
+        f"tags={found.get('tags')} user={found.get('user_id')}"
     )
 
     # Online-style evaluation on a synthetic final state.
@@ -78,11 +85,14 @@ async def main() -> int:
     if not results:
         return 1
 
-    # Scores need a moment to be queryable; then verify they are attached.
-    await asyncio.sleep(4)
-    traces = await fetch_traces(limit=5, name="cv-extraction")
-    found = next((t for t in traces if t.get("id") == trace_id), None)
-    score_names = [s.get("name") for s in (found or {}).get("scores", [])]
+    # Scores are ingested asynchronously; retry briefly.
+    scores: list = []
+    for _ in range(6):
+        await asyncio.sleep(5)
+        scores = (await fetch_scores_for_traces([trace_id])).get(trace_id, [])
+        if scores:
+            break
+    score_names = sorted(s.get("name") for s in scores)
     print(f"6. scores attached to trace: {score_names}")
     if not score_names:
         return 1

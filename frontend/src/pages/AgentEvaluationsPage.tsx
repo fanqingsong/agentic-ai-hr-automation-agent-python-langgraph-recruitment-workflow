@@ -95,14 +95,14 @@ export function AgentEvaluationsPage() {
                 : 'enabled · unreachable'
               : 'disabled'}
           </span>
-          {status?.langfuse_host && (
+          {status?.langfuse_ui_host && (
             <a
-              href={status.langfuse_host}
+              href={status.langfuse_ui_host}
               target="_blank"
               rel="noreferrer"
               className="text-primary underline-offset-2 hover:underline"
             >
-              Open Langfuse UI ({status.langfuse_host})
+              Open Langfuse UI ({status.langfuse_ui_host})
             </a>
           )}
           <span className="text-gray-500">

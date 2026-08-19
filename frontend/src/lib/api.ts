@@ -178,6 +178,7 @@ export const agentEvaluationsAPI = {
       langfuse_enabled: boolean;
       langfuse_reachable: boolean;
       langfuse_host: string | null;
+      langfuse_ui_host: string | null;
       llm_judge_default: boolean;
       trace_evaluators: Record<string, string[]>;
     }>('/api/agent-evaluations/status'),

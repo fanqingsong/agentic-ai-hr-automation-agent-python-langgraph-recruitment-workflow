@@ -80,6 +80,10 @@ def make_trace_config(
 
     Returns None when tracing is disabled — callers then invoke the graph
     without a config (plain ``await app.ainvoke(state)``).
+
+    Langfuse v4 is observations-first: ``run_name`` names the root observation
+    (what batch evaluation filters on) while ``langfuse_trace_name`` keeps the
+    trace-level name aligned for the UI.
     """
     if not is_langfuse_enabled():
         return None
@@ -96,7 +100,7 @@ def make_trace_config(
         if tags:
             metadata["langfuse_tags"] = [str(t) for t in tags]
 
-        return {"callbacks": [handler], "metadata": metadata}
+        return {"run_name": name, "callbacks": [handler], "metadata": metadata}
     except Exception as e:
         logger.warning("Could not create Langfuse trace config for '%s': %s", name, e)
         return None
@@ -173,37 +177,101 @@ def _ping_sync() -> bool:
 async def fetch_traces(
     *,
     limit: int = 50,
-    page: int = 1,
     name: Optional[str] = None,
-    tags: Optional[List[str]] = None,
     user_id: Optional[str] = None,
+    days: int = 30,
 ) -> List[Dict[str, Any]]:
-    """Fetch recent traces from the Langfuse public REST API.
+    """Fetch recent workflow runs from the Langfuse Observations API v2.
 
-    The v4 Python SDK does not expose a trace-fetching helper, so this goes
-    straight to ``GET /api/public/traces`` with basic auth (pk/sk).
+    Langfuse v4 self-hosting runs in "events_only" mode where the legacy
+    ``GET /api/public/traces`` is removed. A workflow *run* is represented by
+    its root observation (one per traced graph/agent invocation), so we query
+    root observations and expose them with trace-style keys. ``output`` is the
+    final LangGraph state (JSON-decoded when possible) used by batch evaluation.
     """
-    if not is_langfuse_enabled():
+    client = get_langfuse_client()
+    if client is None:
         return []
 
-    params: Dict[str, Any] = {"limit": max(1, min(limit, 100)), "page": max(1, page)}
-    if name:
-        params["name"] = name
-    if user_id:
-        params["userId"] = user_id
-    if tags:
-        params["tags"] = tags  # repeated query param
+    import asyncio
+    from datetime import datetime, timedelta, timezone
+
+    from_start = datetime.now(timezone.utc) - timedelta(days=max(1, days))
+
+    def _fetch() -> List[Dict[str, Any]]:
+        resp = client.api.observations.get_many(
+            is_root_observation=True,
+            name=name,
+            user_id=user_id,
+            from_start_time=from_start,
+            limit=max(1, min(limit, 1000)),
+            fields="core,basic,io,metrics,trace_context,usage",
+        )
+        return [_project_observation(o) for o in resp.data]
+
+    return await asyncio.to_thread(_fetch)
+
+
+def _decode_io(value: Any) -> Any:
+    """Observations v2 returns input/output as raw JSON strings."""
+    if isinstance(value, str):
+        try:
+            import json
+
+            return json.loads(value)
+        except (json.JSONDecodeError, ValueError):
+            return value
+    return value
+
+
+def _project_observation(o: Any) -> Dict[str, Any]:
+    return {
+        "id": o.id,
+        "trace_id": o.trace_id,
+        "name": o.name,
+        "timestamp": o.start_time.isoformat() if o.start_time else None,
+        "user_id": getattr(o, "user_id", None),
+        "session_id": getattr(o, "session_id", None),
+        "latency": getattr(o, "latency", None),
+        "total_cost": getattr(o, "total_cost", None),
+        "tags": list(getattr(o, "tags", None) or []),
+        "input": _decode_io(getattr(o, "input", None)),
+        "output": _decode_io(getattr(o, "output", None)),
+    }
+
+
+async def fetch_scores_for_traces(trace_ids: List[str]) -> Dict[str, List[Dict[str, Any]]]:
+    """Fetch the scores attached to each trace (parallel per-trace queries).
+
+    Scores API v3 has a ``trace_id`` filter but does not return trace linkage
+    on list responses, so we query per trace and group in-process.
+    """
+    client = get_langfuse_client()
+    if client is None or not trace_ids:
+        return {}
 
     import asyncio
 
-    def _fetch() -> List[Dict[str, Any]]:
-        resp = httpx.get(
-            f"{Config.LANGFUSE_HOST.rstrip('/')}/api/public/traces",
-            params=params,
-            auth=(Config.LANGFUSE_PUBLIC_KEY, Config.LANGFUSE_SECRET_KEY),
-            timeout=15.0,
-        )
-        resp.raise_for_status()
-        return resp.json().get("data", [])
+    def _fetch_one(trace_id: str) -> List[Dict[str, Any]]:
+        resp = client.api.scores_v3.get_many_v3(trace_id=trace_id, limit=50)
+        return [
+            {
+                "name": s.name,
+                "value": getattr(s, "value", None),
+                "data_type": str(getattr(s, "data_type", "")),
+                "comment": getattr(s, "comment", None),
+            }
+            for s in resp.data
+        ]
 
-    return await asyncio.to_thread(_fetch)
+    results = await asyncio.gather(
+        *(asyncio.to_thread(_fetch_one, t) for t in set(trace_ids)),
+        return_exceptions=True,
+    )
+    scores: Dict[str, List[Dict[str, Any]]] = {}
+    for trace_id, res in zip(set(trace_ids), results):
+        if isinstance(res, Exception):
+            logger.warning("Score fetch failed for trace %s: %s", trace_id, res)
+        else:
+            scores[trace_id] = res
+    return scores

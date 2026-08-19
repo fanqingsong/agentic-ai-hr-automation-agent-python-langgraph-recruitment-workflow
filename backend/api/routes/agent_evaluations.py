@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from backend.config import Config
 from backend.core.dependencies import require_manager_or_admin
 from backend.core.langfuse_client import (
+    fetch_scores_for_traces,
     fetch_traces,
     is_langfuse_enabled,
     ping as ping_langfuse,
@@ -47,12 +48,21 @@ def get_agent_evaluations_router(db: Any):
         _: Annotated[UserModel, Depends(require_manager_or_admin)] = None,
     ):
         """Integration status + which evaluators apply to which trace name."""
+
+        def _browser_ui_url() -> str:
+            # Inside docker the backend reaches langfuse via the service name;
+            # a browser on the host needs the mapped localhost port instead.
+            return Config.LANGFUSE_HOST.rstrip("/").replace(
+                "://langfuse-web:", "://localhost:"
+            )
+
         enabled = is_langfuse_enabled()
         reachable = await ping_langfuse() if enabled else False
         return {
             "langfuse_enabled": enabled,
             "langfuse_reachable": reachable,
             "langfuse_host": Config.LANGFUSE_HOST if enabled else None,
+            "langfuse_ui_host": _browser_ui_url() if enabled else None,
             "llm_judge_default": Config.LANGFUSE_LLM_JUDGE_ENABLED,
             "trace_evaluators": TRACE_EVALUATORS,
         }
@@ -71,28 +81,26 @@ def get_agent_evaluations_router(db: Any):
             )
         try:
             traces = await fetch_traces(limit=limit, name=name)
+            scores_by_trace = await fetch_scores_for_traces(
+                [t["trace_id"] for t in traces if t.get("trace_id")]
+            )
         except Exception as e:
             logger.error("Failed to fetch Langfuse traces: %s", e)
             raise HTTPException(status_code=502, detail=f"Langfuse query failed: {e}")
 
+        # Input/output states can be large; the table only needs the scores.
         def _project(t: dict) -> dict:
             return {
                 "id": t.get("id"),
+                "trace_id": t.get("trace_id"),
                 "name": t.get("name"),
                 "timestamp": t.get("timestamp"),
-                "user_id": t.get("userId"),
-                "session_id": t.get("sessionId"),
+                "user_id": t.get("user_id"),
+                "session_id": t.get("session_id"),
                 "latency": t.get("latency"),
-                "total_cost": t.get("totalCost"),
+                "total_cost": t.get("total_cost"),
                 "tags": t.get("tags") or [],
-                "scores": [
-                    {
-                        "name": s.get("name"),
-                        "value": s.get("value"),
-                        "comment": s.get("comment"),
-                    }
-                    for s in (t.get("scores") or [])
-                ],
+                "scores": scores_by_trace.get(t.get("trace_id"), []),
             }
 
         return {"success": True, "count": len(traces), "traces": [_project(t) for t in traces]}
